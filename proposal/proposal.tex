@@ -25,7 +25,7 @@
 
     \item \begin{figure}[H]
         \centering
-        \includegraphics[width=0.3\textwidth]{riley_picture.jpg} %TODO: add picture
+        \includegraphics[width=0.3\textwidth]{ethan_picture.png}
     \end{figure}
     \textbf{Ethan Parham:} I am a graduate student at the University of Michigan studying Mechanical Engineering, concentrating on design and controls. I have a Bachelor's degree in Mechanical Engineering, with a minor in Computer Science. After I graduate, my dream role would be on a team developing prosthetics, but I also am interested in the automotive industry and environmental sustainability. One of my favorite hobbies is music, and I am heavily involved with the athletic bands at Michigan. I play trumpet in the Michigan Marching band and Hockey Band, in addition to the trumpet ensemble. 
 \end{itemize}
@@ -47,15 +47,25 @@ Conflicts about content or procedure will be resolved through discussion within 
 The team will at minimum meet from 3-4 on Fridays on zoom. Additional or longer meetings can be scheduled as necessary. An alternative weekly meeting time is from 12-1 on Thursdays. The primary goal of the weekly meetings will be to ensure all team members are on the same page, and to set goals to be accomplished prior to the next meeting. If a team member is unable to attend the meeting, they should let the team know as soon as possible in order to reschedule to the meeting or to learn the contents of the meeting if no meeting can be made possible.
 
 \section{Introduction and Motivation}
+
+The speed-accuracy tradeoff is a phenomena in motor neuroscience which describes the relationship between the speed of the motion and the accuracy required of the task being performed. The tradeoff is fairly ubiquitous across different animal species as well as motor, perceptual, and cognitive tasks. As a result, understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{c3}. The tradeoff can be quantitatively modeled using Fitts’ law.. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown below \cite{c1}. Fitts law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed accuracy tradeoff.  
+
 \begin{equation}
     MD = a + b \log_2 \left(\frac{2A}{W}\right) \label{eq:fitts_law}
 \end{equation}
-Where $MD$ is movement time, $A$ is the movement distance, and $W$ is the target width. 
+
+ Historically, the speed accuracy tradeoff has been attributed to signal dependent motor noise, which is noise which has increasing variance depending on the strength of a neural control signal \cite{c2}. Noise in neural control will cause a change in the desired trajectory of a motion. These perturbations will eventually result in inaccuracies in the final movement. If noise was not a factor in the control of motion, then theoretically faster movements would result in less motor inaccuracy since there would be less time for noise to make an impact on the motion. In fact, the opposite is true as shown by Fitts’ law. The conclusion therefore is that higher speeds result in larger noise signals in motor control, resulting in larger movement variability.
+
+ However, a new development proposes that a biomechanically realistic computational model can demonstrate the speed accuracy tradeoff without incorporating motor noise \cite{c5}. The findings propose that the speed accuracy tradeoff is caused by tighter constraints in trajectory optimization for an accurate problem which reduces the number of fast solutions for the problem. As a result, motor planning variability is the root cause of the speed accuracy tradeoff and not the motor noise as previously proposed. In order to reach this conclusion, the researchers employed a three dimensional, five degree-of-freedom model of the arm utilizing 47 muscles to produce realistic motions. Then, they utilized minimization of a cost function to model point to point movements in order to synthesize movement. They found that the motor variability can be explained using optimal control theory. Essentially, when a movement is being planned, if there is a large target there are many potential optimal paths which are found using the stochastic optimizer. Since there are more potential solutions to the movement problem, there will be many “good” solutions. However, if the search space is decreased by increasing the required accuracy needed for the movement, there will be fewer “good” options, and a less efficient option is more likely to be found when compared to a movement with lower required accuracy. Their hypothesis about motor planning was further reinforced using a study of the motor cortex of a Rhesus monkey by correlating data for the preparatory neural state variability for accurate and inaccurate tasks to the movement variability. This further emphasizes that motor planning variability results in variability in the executed motion, and indicates some kind of optimal control is involved in motor planning.
+
+A key emphasis of the researchers is the further room for improvement on their model. Signal dependent noise and motor planning optimization are likely both contributors to the speed accuracy tradeoff as they both are able to correlate to Fitts’ law, so a model which combines both would be an improvement over either model on its own. Additionally, improvement on the optimizer used would also have potential to increase the accuracy of the model \cite{c4}.
+
+The methods humans and animals use to optimize their motions is of great interest beyond just better modeling the reaching of a human arm. Humans are capable of performing and optimizing very complex tasks, which is a capability which is highly desirable in robotics \cite{c6}. Better understanding the speed accuracy tradeoff and the methods which are used to reduce redundancy in motion will help further the abilities of robots to perform difficult and complex tasks.
 
 \section{Problem Description}
 We aim to answer the following questions: 
 \begin{itemize}
-    \item When using trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question that the original paper focused on)
+    \item When using trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question studied in \cite{c5})
 
     \item How does the introduction of signal-dependent motor noise to the model affect this comparison?
 
@@ -166,4 +176,24 @@ As a stretch goal, we aim to compare the results of the original trajectory opti
     \item Analyze the collected data and compare it to the original trajectory optimization method using the metrics described in the Problem Description section.
 \end{itemize}
 
+\begin{thebibliography}{99}
+\bibitem{c1}
+Fitts PM (1954) The information capacity of the human motor system in controlling the amplitude of movement Journal of Experimental Psychology 47:381–391. https://doi.org/10.1037/h0055392 
+
+\bibitem{c2}
+Harris, C., Wolpert, D. Signal-dependent noise determines motor planning. Nature 394, 780–784 (1998). https://doi.org/10.1038/29528
+
+\bibitem{c3}
+Heitz RP (2014) The speed-accuracy tradeoff: history, physiology, methodology, and behavior Frontiers in Neuroscience 8:150. https://doi.org/10.3389/fnins.2014.00150
+
+\bibitem{c4}
+Lillicrap TP, Hunt JJ, Pritzel A, Heess N, Erez T, Tassa Y, Silver D, Wierstra D (2015) Continuous control with deep reinforcement learning arXiv. https://arxiv.org/abs/1509.02971
+
+\bibitem{c5}
+Mazen Al Borno, Saurabh Vyas, Krishna V Shenoy, Scott L Delp (2020) High-fidelity musculoskeletal modeling reveals that motor planning variability contributes to the speed-accuracy tradeoff 
+https://doi.org/eLife 9:e57021
+
+\bibitem{c6}
+Trivedi U, Menychtas D, Alqasemi R, Dubey R. Biomimetic Approaches for Human Arm Motion Generation: Literature Review and Future Directions. Sensors (Basel). 2023 Apr 12;23(8):3912. doi: 10.3390/s23083912.
+\end{thebibliography}
 \end{document}

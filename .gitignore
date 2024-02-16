@@ -1,3 +1,11 @@
 __MACOSX
 .DS_Store
 speedaccuracy_results/*/
+*.zip
+
+# latex
+*.log
+*.fdb_latexmk
+*.synctex.gz
+*.aux
+*.fls
