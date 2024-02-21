@@ -27,8 +27,10 @@ void ArmController::computeControls(const SimTK::State& s, SimTK::Vector &contro
 		}
 			
 		Vector muscleControl(1);
+		const auto& socket = getSocket<Actuator>("actuators");
 		for (int i = 0; i < _nbr_actuators; i++) {
-			Muscle* muscle = static_cast<Muscle*>(&getActuators().get(i));
+			// Muscle* muscle = static_cast<Muscle*>(&getActuators().get(i));
+			auto muscle = dynamic_cast<const Muscle*>(&socket.getConnectee(i));
 			
 			muscleControl[0] =  _knotsV[phase * _nbr_actuators + i];
 					
@@ -75,7 +77,7 @@ void ArmController::set_filename(std::string filename)
 int main(int argc, char* argv[])
 {
 	
-	std::string model_file = "../ue_rigid.osim";
+	std::string model_file = "ue_rigid.osim";
 	
 	try{				
 		int rc = MPI_Init(&argc, &argv);

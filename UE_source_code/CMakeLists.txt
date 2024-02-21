@@ -28,12 +28,14 @@ INCLUDE_DIRECTORIES(${OpenSim_SOURCE_DIR} ${OpenSim_SOURCE_DIR}/Vendors)
 
 set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(EXTRA_COMPILE_FLAGS "-w")
 
 find_package(MPI REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenSim REQUIRED PATHS "${OPENSIM_INSTALL_DIR}")
-set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_COMPILE_FLAGS} ${EXTRA_COMPILE_FLAGS}")
+# set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
 set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 include_directories(${MPI_INCLUDE_PATH})
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -89,19 +91,33 @@ link_directories(${OPENSIM_LIBS_DIR} ${OPENSIM_DLLS_DIR})
 add_executable(${TARGET} ${SOURCE})
 
 target_link_libraries(${TARGET}
-	debug osimSimulation_d	optimized osimSimulation
-	debug osimActuators_d	optimized osimActuators
-	debug osimCommon_d		optimized osimCommon
-	debug osimAnalyses_d	optimized osimAnalyses
-	debug osimTools_d		optimized osimTools
-	debug ${NameSpace}SimTKcommon_d optimized ${NameSpace}SimTKcommon
-	debug ${NameSpace}SimTKmath_d optimized  ${NameSpace}SimTKmath
-	debug ${NameSpace}SimTKsimbody_d optimized ${NameSpace}SimTKsimbody
+ libosimSimulation.so
+ libosimActuators.so
+ libosimCommon.so
+ libosimAnalyses.so
+ libosimTools.so
+ libSimTKcommon.so
+ libSimTKmath.so
+ libSimTKsimbody.so
 	${PLATFORM_LIBS}
 	${MPI_LIBRARIES}
 	${OpenCV_LIBS}
 	${OpenSim_LIBRARIES}
 )
+# target_link_libraries(${TARGET}
+# 	debug osimSimulation_d	optimized osimSimulation
+# 	debug osimActuators_d	optimized osimActuators
+# 	debug osimCommon_d		optimized osimCommon
+# 	debug osimAnalyses_d	optimized osimAnalyses
+# 	debug osimTools_d		optimized osimTools
+# 	debug ${NameSpace}SimTKcommon_d optimized ${NameSpace}SimTKcommon
+# 	debug ${NameSpace}SimTKmath_d optimized  ${NameSpace}SimTKmath
+# 	debug ${NameSpace}SimTKsimbody_d optimized ${NameSpace}SimTKsimbody
+# 	${PLATFORM_LIBS}
+# 	${MPI_LIBRARIES}
+# 	${OpenCV_LIBS}
+# 	${OpenSim_LIBRARIES}
+# )
 
 # IF(WIN32)
 # 	SET(PLATFORM_LIBS  pthreadVC2)
