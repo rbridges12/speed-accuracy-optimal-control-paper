@@ -73,7 +73,7 @@ public:
 		_dim_reduction = dim_reduction;
 	};
 
-	void computeControls(const SimTK::State& s, SimTK::Vector &controls) const;
+	void computeControls(const SimTK::State& s, SimTK::Vector &controls) const override;
 
 	void update_time(SimTK::Vector timeV)
 	{

@@ -28,7 +28,7 @@ void ArmController::computeControls(const SimTK::State& s, SimTK::Vector &contro
 			
 		Vector muscleControl(1);
 		for (int i = 0; i < _nbr_actuators; i++) {
-			Muscle* muscle = static_cast<Muscle*>(&getActuatorSet().get(i));
+			Muscle* muscle = static_cast<Muscle*>(&getActuators().get(i));
 			
 			muscleControl[0] =  _knotsV[phase * _nbr_actuators + i];
 					

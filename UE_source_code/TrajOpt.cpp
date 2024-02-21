@@ -244,6 +244,7 @@ SimTK::State TrajOpt::traj_opt(const SimTK::State& si, OpenSim::Model& osimModel
 
 		SimTK::Vector timeV(KNOTS);
 
+		// fill time vector with discretized time points (this is basically calling linspace)
 		for (int i = 1; i <= KNOTS; i++) {
 			timeV[i-1] = initialTime + (finalTime - initialTime) * i / KNOTS;
 		}	
@@ -264,19 +265,22 @@ SimTK::State TrajOpt::traj_opt(const SimTK::State& si, OpenSim::Model& osimModel
 		controller->update_knots(_controls);		
 		controller->reset_control_index();
 
-		SimTK::SemiExplicitEuler2Integrator integrator(osimModel.getMultibodySystem());
-		integrator.setAccuracy(1.0e-2);
+		// SimTK::SemiExplicitEuler2Integrator integrator(osimModel.getMultibodySystem());
+		// integrator.setAccuracy(1.0e-2);
 			
-		SimTK::TimeStepper ts(osimModel.getMultibodySystem(), integrator);
-        	ts.initialize(si);
-        	ts.setReportAllSignificantStates(true);
-        	integrator.setReturnEveryInternalStep(true);
+		// SimTK::TimeStepper ts(osimModel.getMultibodySystem(), integrator);
+        // 	ts.initialize(si);
+        // 	ts.setReportAllSignificantStates(true);
+        // 	integrator.setReturnEveryInternalStep(true);
 		
-		OpenSim::Manager manager(osimModel, integrator);	
-		manager.setInitialTime(initialTime);
-		manager.setFinalTime(finalTime);	
+		// OpenSim::Manager manager(osimModel, integrator);	
+		// manager.setInitialTime(initialTime);
+		// manager.setFinalTime(finalTime);	
+
+		OpenSim::Manager manager(osimModel);
+		manager.setIntegratorAccuracy(1.0e-2);
 	
-		OptSystem optSystem(_numParams, si, osimModel, manager, ts, filename, filename_states, finalTime, window_interval, KNOTS);
+		OptSystem optSystem(_numParams, si, osimModel, manager, filename, filename_states, finalTime, window_interval, KNOTS);
 		optSystem.set_initial_final_time(initialTime, finalTime);
 		optSystem.set_rand_end_eff(_rand_end_eff);		
 		optSystem.set_model_file(_model_file);		

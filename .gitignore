@@ -9,3 +9,7 @@ speedaccuracy_results/*/
 *.synctex.gz
 *.aux
 *.fls
+
+# c++
+*.cache/
+build/
