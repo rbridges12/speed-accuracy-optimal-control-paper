@@ -2,6 +2,7 @@
 #define TRAJOPT_H
 
 #include <OpenSim/OpenSim.h>
+// #include "OpenSim/Common/STOFileAdapter.h"
 #include <opencv2/opencv.hpp>
 
 class TrajOpt {

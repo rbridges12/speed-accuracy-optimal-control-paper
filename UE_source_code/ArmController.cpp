@@ -77,8 +77,11 @@ void ArmController::set_filename(std::string filename)
 int main(int argc, char* argv[])
 {
 	
-	std::string model_file = "ue_rigid.osim";
-	
+	// std::string model_file = "ue_rigid.osim";
+	// std::string model_file = "MOBL_ARMS_fixed_41.osim";
+	std::string model_file = "/home/riley/repos/598/project/UE_source_code/MOBL_ARMS_fixed_41.osim";
+	// OpenSim::Model osimModel("MOBL_ARMS_fixed_41.osim");
+	OpenSim::Model osimModel(model_file);
 	try{				
 		int rc = MPI_Init(&argc, &argv);
 		if (rc != MPI_SUCCESS) {
