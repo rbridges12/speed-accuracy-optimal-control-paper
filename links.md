@@ -1,0 +1,6 @@
+- [original paper](https://elifesciences.org/articles/57021#s4)
+- [UE model issues](https://simtk.org/tracker/?atid=1311&group_id=657&func=browse)
+- [opensim API docs](https://simtk.org/api_docs/opensim/api_docs/classOpenSim_1_1Controller.html)
+- [opensim 4.1 tutorial](https://github.com/mitkof6/OpenSim_API_tutorial/tree/master/src/05_eye_fixation_controller)
+- [opensim developer guide](https://simtk-confluence.stanford.edu:8443/display/OpenSim/Introduction+to+the+OpenSim+API)
+- [opensim forum](https://simtk.org/plugins/phpBB/viewtopicPhpbb.php?f=91&t=11772&p=35111&start=0&view=)

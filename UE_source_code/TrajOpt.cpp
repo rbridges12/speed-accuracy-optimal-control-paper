@@ -64,20 +64,21 @@ void TrajOpt::traj_opt_setup()
 		controller->setActuators(osimModel.updActuators());
 		controller->set_dim_reduction(_dim_reduction);
 		osimModel.addController(controller);
+		// coords.get(0).setValue(si, 0.0);
 		
 		_actuated_dof = actuated_degrees_of_freedom(coords);
 
 		if(myrank == 0){
 			if(_randomInitial){
 			
-				_rand_coords = set_random_state(coords, si);
+				// _rand_coords = set_random_state(coords, si);
 			
 				for (int nproc = 1; nproc < numtasks ; nproc++){
 					MPI_Send(&_rand_coords[0], _rand_coords.size(), MPI_DOUBLE, nproc, 0, MPI_COMM_WORLD);
 				}
 			
 			}else{
-				set_state(coords, si, _rand_coords);
+				// set_state(coords, si, _rand_coords);
 			}
 		
 			if(_randomTarget){
@@ -103,7 +104,7 @@ void TrajOpt::traj_opt_setup()
 				MPI_Recv(&_rand_end_eff[0], _rand_end_eff.size(), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
 			}
 
-			set_state(coords, si, _rand_coords);
+			// set_state(coords, si, _rand_coords);
 		}	
 		
 		const OpenSim::Set<OpenSim::Muscle> &muscleSet = osimModel.getMuscles();
