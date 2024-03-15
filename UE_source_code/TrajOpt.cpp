@@ -109,7 +109,7 @@ void TrajOpt::traj_opt_setup()
 		
 		const OpenSim::Set<OpenSim::Muscle> &muscleSet = osimModel.getMuscles();
      		for(int i=0; i< muscleSet.getSize(); i++ ){
-            		muscleSet[i].setActivation(si, 0.01);
+            		// muscleSet[i].setActivation(si, 0.01);
 		}
 		osimModel.equilibrateMuscles(si);
 		si.setTime(initialTime);		
