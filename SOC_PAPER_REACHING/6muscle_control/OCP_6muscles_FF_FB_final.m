@@ -103,6 +103,7 @@ for i = 1:N
     e_ff_i = e_ff(:,i);
     e_ff_i_plus = e_ff(:,i+1);
     
+    % dynamics constraints using trapezoidal integration
     dX_i = functions.f_forwardMusculoskeletalDynamics(X_i,e_ff_i,0,0,0*wM,0*wPq,0*wPqdot);
     dX_i_plus = functions.f_forwardMusculoskeletalDynamics(X_i_plus,e_ff_i_plus,0,0,0*wM,0*wPq,0*wPqdot);
     opti.subject_to(functions.f_G_Trapezoidal(X_i,X_i_plus,dX_i,dX_i_plus)*1e3 == 0);
@@ -123,7 +124,7 @@ for i = 1:N
     DG_DW_i = functions.f_DG_DW(DdX_Dw_i);
     
     opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
-    J_fb = J_fb + (functions.f_expectedEffort_fb(X_i,Pmat_i,K_i,EE_ref_i,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2; %expectedEffort_fb(i);
+    % J_fb = J_fb + (functions.f_expectedEffort_fb(X_i,Pmat_i,K_i,EE_ref_i,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2; %expectedEffort_fb(i);
     
     % Obstacle
     if targetNR == 3
@@ -138,7 +139,7 @@ for i = 1:N
     Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i'; % + dGdW*sigmaW*dGdW'
     
 end
-J_fb = J_fb + (functions.f_expectedEffort_fb(X_i_plus,Pmat_i,K_i_plus,EE_ref_i_plus,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2;
+% J_fb = J_fb + (functions.f_expectedEffort_fb(X_i_plus,Pmat_i,K_i_plus,EE_ref_i_plus,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2;
 
 %% Boundary conditions
  
@@ -237,23 +238,6 @@ opti.solver('ipopt',optionssol);
     result.P_EEPos = P_EEPos_sol;
     result.P_EEVel = P_EEVel_sol;
     result.EE_ref = EE_ref_sol;
-    
-    % Cost function
-    %-feedback
-    % J_fb = NaN(auxdata.N+1,1);
-    % J_fb_corrective = NaN(auxdata.N+1,1);
-    % J_fb_sensoryNoise = NaN(auxdata.N+1,1);
-    % J_var_act = NaN(auxdata.N+1,1);
-    % e_fb_corrective = NaN(6,auxdata.N+1); 
-    
-    % for i = 1:auxdata.N+1
-    %     J_fb(i) = full(functions.f_expectedEffort_fb(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i),wPq,wPqdot));
-    %     J_fb_corrective(i) = full(functions.f_expectedEffort_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
-    %     J_fb_sensoryNoise(i) = full(functions.f_expectedEffort_fb_sensoryNoise(reshape(K_sol(:,i),6,4),wPq,wPqdot));
-    %     J_var_act(i) = trace(Pmat_sol(1:6,1:6,i));
-    %     e_fb_corrective(:,i) = full(functions.f_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
-    % end
-    % succes = true;
 end
 
 

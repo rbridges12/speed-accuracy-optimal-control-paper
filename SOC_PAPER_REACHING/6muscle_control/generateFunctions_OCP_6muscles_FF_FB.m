@@ -47,7 +47,7 @@ f_DG_DZ = Function('f_DG_DZ',{DdX_DX_MX},{DG_DZ_MX});
 functions.f_DG_DZ = f_DG_DZ;
 
 % Sensitivity of trapezoidal integration scheme to changes in motor noise
-DdX_Dw_MX = MX.sym('DdX_Dw_MX',auxdata.nStates,6); 
+DdX_Dw_MX = MX.sym('DdX_Dw_MX',auxdata.nStates,2); 
 DG_DW_MX = DG_DW_Trapezoidal(DdX_Dw_MX,auxdata.dt);
 f_DG_DW = Function('f_DG_DW',{DdX_Dw_MX},{DG_DW_MX});
 functions.f_DG_DW = f_DG_DW;
@@ -55,30 +55,33 @@ functions.f_DG_DW = f_DG_DW;
 % Some other useful function definitions
 % End effector position and variability
 q_MX = MX.sym('q_MX',2); P_q_MX = MX.sym('P_q_MX',2,2);
-EEPos_MX = EndEffectorPos(q_MX,auxdata); f_EEPos = Function('f_EEPos',{q_MX},{EEPos_MX}); % End effector position
+EEPos_MX = EndEffectorPos(q_MX,auxdata); f_EEPos = Function('f_EEPos',{q_MX},{EEPos_MX});
 functions.f_EEPos = f_EEPos;
-P_EEPos_MX = jacobian(EEPos_MX,q_MX)*P_q_MX*jacobian(EEPos_MX,q_MX)'; f_P_EEPos = Function('f_P_EEPos',{q_MX,P_q_MX},{P_EEPos_MX}); % Covariance of end effector position
+P_EEPos_MX = jacobian(EEPos_MX,q_MX)*P_q_MX*jacobian(EEPos_MX,q_MX)';
+f_P_EEPos = Function('f_P_EEPos',{q_MX,P_q_MX},{P_EEPos_MX}); % Covariance of end effector position
 functions.f_P_EEPos = f_P_EEPos;
 % End effector velocity and variability
 q_MX = MX.sym('q_MX',2); qdot_MX = MX.sym('q_MX',2); P_qdot_MX = MX.sym('P_qdot_MX',4,4);
-EEVel_MX = EndEffectorVel(q_MX,qdot_MX,auxdata); f_EEVel = Function('f_EEVel',{q_MX,qdot_MX},{EEVel_MX}); % End effector position
+EEVel_MX = EndEffectorVel(q_MX,qdot_MX,auxdata);
+f_EEVel = Function('f_EEVel',{q_MX,qdot_MX},{EEVel_MX}); % End effector position
 functions.f_EEVel = f_EEVel;
-P_EEVel_MX = jacobian(EEVel_MX,[q_MX qdot_MX])*P_qdot_MX*jacobian(EEVel_MX,[q_MX qdot_MX])'; f_P_EEVel = Function('f_P_EEVel',{q_MX,qdot_MX,P_qdot_MX},{P_EEVel_MX}); % Covariance of end effector position
+P_EEVel_MX = jacobian(EEVel_MX,[q_MX qdot_MX])*P_qdot_MX*jacobian(EEVel_MX,[q_MX qdot_MX])';
+f_P_EEVel = Function('f_P_EEVel',{q_MX,qdot_MX,P_qdot_MX},{P_EEVel_MX}); % Covariance of end effector velocity
 functions.f_P_EEVel = f_P_EEVel;
 
 %
-P_MX = MX.sym('P_MX',auxdata.nStates,auxdata.nStates);
-sensoryNoise_MX = [wPq_MX;wPqdot_MX].*eye(4);
-expectedEffort_fb_MX = trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)') + trace(K_MX*sensoryNoise_MX*K_MX');
-f_expectedEffort_fb = Function('f_expectedEffort_fb',{X_MX,P_MX,K_MX,EE_ref_MX,wPq_MX,wPqdot_MX},{expectedEffort_fb_MX});
-functions.f_expectedEffort_fb = f_expectedEffort_fb;
+% P_MX = MX.sym('P_MX',auxdata.nStates,auxdata.nStates);
+% sensoryNoise_MX = [wPq_MX;wPqdot_MX].*eye(4);
+% expectedEffort_fb_MX = trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)') + trace(K_MX*sensoryNoise_MX*K_MX');
+% f_expectedEffort_fb = Function('f_expectedEffort_fb',{X_MX,P_MX,K_MX,EE_ref_MX,wPq_MX,wPqdot_MX},{expectedEffort_fb_MX});
+% functions.f_expectedEffort_fb = f_expectedEffort_fb;
 
-f_fb_corrective = Function('f_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{diag(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
-functions.f_fb_corrective = f_fb_corrective;
+% f_fb_corrective = Function('f_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{diag(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
+% functions.f_fb_corrective = f_fb_corrective;
 
-f_expectedEffort_fb_corrective = Function('f_expectedEffort_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
-functions.f_expectedEffort_fb_corrective = f_expectedEffort_fb_corrective;
+% f_expectedEffort_fb_corrective = Function('f_expectedEffort_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
+% functions.f_expectedEffort_fb_corrective = f_expectedEffort_fb_corrective;
 
-f_expectedEffort_fb_sensoryNoise = Function('f_expectedEffort_fb_sensoryNoise',{K_MX,wPq_MX,wPqdot_MX},{trace(K_MX*sensoryNoise_MX*K_MX')});
-functions.f_expectedEffort_fb_sensoryNoise = f_expectedEffort_fb_sensoryNoise;
+% f_expectedEffort_fb_sensoryNoise = Function('f_expectedEffort_fb_sensoryNoise',{K_MX,wPq_MX,wPqdot_MX},{trace(K_MX*sensoryNoise_MX*K_MX')});
+% functions.f_expectedEffort_fb_sensoryNoise = f_expectedEffort_fb_sensoryNoise;
 end
