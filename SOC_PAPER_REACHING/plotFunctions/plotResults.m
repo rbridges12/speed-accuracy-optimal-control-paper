@@ -50,40 +50,41 @@ for i = 1:2
 end
 
 
-tab = uitab(hTabGroup, 'Title', 'normalized l_M');
-axes('parent',tab);
-titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
-LMT_vector = evaluate_LMT_vector(result.auxdata.dM_coefficients,result.auxdata.LMT_coefficients,result.q(:,1)',result.q(:,2)')';
+% tab = uitab(hTabGroup, 'Title', 'normalized l_M');
+% axes('parent',tab);
+% titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
+% LMT_vector = evaluate_LMT_vector(result.auxdata.dM_coefficients,result.auxdata.LMT_coefficients,result.q(:,1)',result.q(:,2)')';
 
-for i = 1:6
-    subplot(3,2,i)
-    % Compute muscle length
-    plot(result.time,LMT_vector(:,i),'LineWidth',2);
-    title(titles(i))
-    ylim([0.4 1.6]);
-    xlim([0 t_end]);
-    xlabel('time [s]');
-    ylabel('l_M');
-end
+% for i = 1:6
+%     subplot(3,2,i)
+%     % Compute muscle length
+%     plot(result.time,LMT_vector(:,i),'LineWidth',2);
+%     title(titles(i))
+%     ylim([0.4 1.6]);
+%     xlim([0 t_end]);
+%     xlabel('time [s]');
+%     ylabel('l_M');
+% end
 
 
-tab = uitab(hTabGroup, 'Title', 'end-effector trajectory');
+tab = uitab(hTabGroup, 'Title', 'End Effector Trajectory');
 axes('parent',tab);
 subplot(1,3,1)
 stdTraj = sqrt(result.P_EEPos(1,:)');
 plotMeanAndVar(result.time,result.EEPos(:,1),stdTraj,'b');
-title('x-pos')
+title('X Position')
 ylim([-0.1 0.1]);
 xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('x-pos');
+xlabel('Time (s)');
+ylabel('X (m)');
 subplot(1,3,2)
 stdTraj = sqrt(result.P_EEPos(3,:)');
-plotMeanAndVar(result.time,result.EEPos(:,2),stdTraj,'b');title('y-pos')
+plotMeanAndVar(result.time,result.EEPos(:,2),stdTraj,'b');
+title('Y Position')
 ylim([0 1]);
 xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('y-pos');
+xlabel('Time (s)');
+ylabel('Y (m)');
 
 subplot(1,3,3)
 plot(result.EEPos(:,1),result.EEPos(:,2),'LineWidth',2); hold on;
@@ -91,70 +92,70 @@ for i = 1:10:length(result.time)
 Cov = [result.P_EEPos(1,i) result.P_EEPos(2,i); result.P_EEPos(2,i) result.P_EEPos(3,i)];
 error_ellipse(Cov,[result.EEPos(i,1);result.EEPos(i,2)],0.95);
 end
-title('2D traj')
+title('2D Trajectory')
 ylim([0 1]);
 xlim([-0.1 0.1]);
-xlabel('x-pos');
-ylabel('y-pos');
+xlabel('X (m)');
+ylabel('Y (m)');
 axis equal
 
 
-tab = uitab(hTabGroup, 'Title', ['CCI']);
-axes('parent',tab);
-titles = {'Brachialis - Lateral triceps','anterior deltoid - posterior deltoid','biceps short - triceps long'};
+% tab = uitab(hTabGroup, 'Title', ['CCI']);
+% axes('parent',tab);
+% titles = {'Brachialis - Lateral triceps','anterior deltoid - posterior deltoid','biceps short - triceps long'};
 
-subplot(3,1,1)
-plot(result.time,result.CCI_ElbowUni,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,1)
+% plot(result.time,result.CCI_ElbowUni,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
-subplot(3,1,2)
-plot(result.time,result.CCI_ShoulderUni,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,2)
+% plot(result.time,result.CCI_ShoulderUni,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
-subplot(3,1,3)
-plot(result.time,result.CCI_Bi,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,3)
+% plot(result.time,result.CCI_Bi,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
 
 
-tab = uitab(hTabGroup, 'Title', ['CCI']);
-axes('parent',tab);
-titles = {'Brachialis - Lateral triceps','anterior deltoid - posterior deltoid','biceps short - triceps long'};
+% tab = uitab(hTabGroup, 'Title', ['CCI']);
+% axes('parent',tab);
+% titles = {'Brachialis - Lateral triceps','anterior deltoid - posterior deltoid','biceps short - triceps long'};
 
-subplot(3,1,1)
-plot(result.time,result.CCI_ElbowUni,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,1)
+% plot(result.time,result.CCI_ElbowUni,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
-subplot(3,1,2)
-plot(result.time,result.CCI_ShoulderUni,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,2)
+% plot(result.time,result.CCI_ShoulderUni,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
-subplot(3,1,3)
-plot(result.time,result.CCI_Bi,'LineWidth',2);
-title(titles(1))
-ylim([0 1]);
-xlim([0 t_end]);
-xlabel('time [s]');
-ylabel('CCI [-]');
+% subplot(3,1,3)
+% plot(result.time,result.CCI_Bi,'LineWidth',2);
+% title(titles(1))
+% ylim([0 1]);
+% xlim([0 t_end]);
+% xlabel('time [s]');
+% ylabel('CCI [-]');
 
 

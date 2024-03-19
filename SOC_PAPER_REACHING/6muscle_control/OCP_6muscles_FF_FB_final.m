@@ -268,9 +268,9 @@ try
     
     
     
-    result.CCI_ElbowUni = computeCocontraction(result.a(:,1),result.a(:,2));
-    result.CCI_ShoulderUni = computeCocontraction(result.a(:,3),result.a(:,4));
-    result.CCI_Bi = computeCocontraction(result.a(:,5),result.a(:,6));
+    % result.CCI_ElbowUni = computeCocontraction(result.a(:,1),result.a(:,2));
+    % result.CCI_ShoulderUni = computeCocontraction(result.a(:,3),result.a(:,4));
+    % result.CCI_Bi = computeCocontraction(result.a(:,5),result.a(:,6));
     succes = true;
     
 catch

@@ -44,6 +44,7 @@ for i = 1:length(wM_std_VEC)
             guessName = [];
             % [resultDC_1,succesDC_1] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
             [resultShooting_1,succesShooting_1] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
+            %%
             plotResults(resultShooting_1);
 
             % Example 2
