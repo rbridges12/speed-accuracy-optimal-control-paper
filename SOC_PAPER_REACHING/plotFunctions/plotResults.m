@@ -1,18 +1,20 @@
 function [] = plotResults(result)
 
-h = figure('Name','Optimal states, controls and other things');
-hTabGroup = uitabgroup;
+% h = figure('Name','Optimal states, controls and other things');
+% hTabGroup = uitabgroup;
 
 t_end = result.time(end);
 
 
-tab = uitab(hTabGroup, 'Title', ['Muscle Activation']);
-axes('parent',tab);
+% tab = uitab(hTabGroup, 'Title', ['Muscle Activation']);
+% axes('parent',tab);
 titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
 ymax = max(max(result.e_ff));
+figure;
 for i = 1:6
     subplot(3,2,i)
-    stairs(result.time,result.e_ff(:,i)); hold on;
+    hold on;
+    stairs(result.time,result.e_ff(:,i), 'r', 'LineWidth', 2);
     stdTraj = sqrt(squeeze(result.Pmat(i,i,:)));
     plotMeanAndVar(result.time,result.a(:,i),stdTraj,'b');
     title(titles(i))
@@ -20,11 +22,13 @@ for i = 1:6
     xlim([0 t_end]);
     xlabel('Time (s)');
     ylabel('Activation');
+    legend('Planned Trajectory (feedforward)', 'Actual Trajectory (feedback)', 'Actual $\pm$ std dev','Interpreter','latex');
 end
 
-tab = uitab(hTabGroup, 'Title', ['Joint Angles']);
-axes('parent',tab);
+% tab = uitab(hTabGroup, 'Title', ['Joint Angles']);
+% axes('parent',tab);
 titles = {'Shoulder','Elbow'};
+figure;
 for i = 1:2
     subplot(2,2,i)
     stdTraj = sqrt(squeeze(result.Pmat(i+6,i+6,:)));
@@ -67,8 +71,9 @@ end
 % end
 
 
-tab = uitab(hTabGroup, 'Title', 'End Effector Trajectory');
-axes('parent',tab);
+% tab = uitab(hTabGroup, 'Title', 'End Effector Trajectory');
+% axes('parent',tab);
+figure;
 subplot(1,3,1)
 stdTraj = sqrt(result.P_EEPos(1,:)');
 plotMeanAndVar(result.time,result.EEPos(:,1),stdTraj,'b');

@@ -43,9 +43,9 @@ for i = 1:length(wM_std_VEC)
             % guessName = ['result_time_0.8_' targetGuess '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str( wPq_std) '_' num2str(wPqdot_std) '.mat'];
             guessName = [];
             % [resultDC_1,succesDC_1] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-            [resultShooting_1,succesShooting_1] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
+            result = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
             %%
-            plotResults(resultShooting_1);
+            plotResults(result);
 
             % Example 2
             % target = 'BAR';

@@ -1,4 +1,4 @@
-function [result,succes] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName)
+function result = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName)
 %% SECTION TITLE
 % DESCRIPTIVE TEXT
 if strcmp(target,'CIRCLE')
@@ -201,15 +201,12 @@ optionssol.ipopt.max_iter = 10000;
 optionssol.ipopt.hessian_approximation = 'limited-memory';
 opti.solver('ipopt',optionssol);
 
-try
-    tic;
-%     result = solve_NLPSOL(opti,optionssol);
     sol = opti.solve();
-    toc
     e_ff_sol = sol.value(e_ff);
     K_sol = sol.value(K);
     X_init_sol = sol.value(X_init);
-    [X_sol, ~, EE_ref_sol, Pmat_sol] = approximateForwardSim(X_init_sol,Pmat_init,e_ff_sol,K_sol,auxdata,functions);
+    [X_sol, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,e_ff_sol,auxdata,functions);
+    % [X_sol, ~, EE_ref_sol, Pmat_sol] = approximateForwardSim(X_init_sol,Pmat_init,e_ff_sol,K_sol,auxdata,functions);
     
     for i = 1:N+1
         Pmat_sol_i = Pmat_sol(:,:,i);
@@ -243,38 +240,20 @@ try
     
     % Cost function
     %-feedback
-    J_fb = NaN(auxdata.N+1,1);
-    J_fb_corrective = NaN(auxdata.N+1,1);
-    J_fb_sensoryNoise = NaN(auxdata.N+1,1);
-    J_var_act = NaN(auxdata.N+1,1);
-    e_fb_corrective = NaN(6,auxdata.N+1); 
+    % J_fb = NaN(auxdata.N+1,1);
+    % J_fb_corrective = NaN(auxdata.N+1,1);
+    % J_fb_sensoryNoise = NaN(auxdata.N+1,1);
+    % J_var_act = NaN(auxdata.N+1,1);
+    % e_fb_corrective = NaN(6,auxdata.N+1); 
     
-    for i = 1:auxdata.N+1
-        J_fb(i) = full(functions.f_expectedEffort_fb(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i),wPq,wPqdot));
-        J_fb_corrective(i) = full(functions.f_expectedEffort_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
-        J_fb_sensoryNoise(i) = full(functions.f_expectedEffort_fb_sensoryNoise(reshape(K_sol(:,i),6,4),wPq,wPqdot));
-        J_var_act(i) = trace(Pmat_sol(1:6,1:6,i));
-        e_fb_corrective(:,i) = full(functions.f_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
-    end
-    J_fb_total = (sum(J_fb)+sum(J_var_act))/2;
-    J_ff_total = (sumsqr(e_ff_sol)+sumsqr(X_sol(1:6,:)))/2;
-    result.J_fb = J_fb;
-    result.J_var_act = J_var_act;
-
-    result.J_fb_corrective = J_fb_corrective;
-    result.J_fb_sensoryNoise = J_fb_sensoryNoise;
-    result.J_fb_total = J_fb_total;
-    result.J_ff_total = J_ff_total;
-    
-    
-    
-    % result.CCI_ElbowUni = computeCocontraction(result.a(:,1),result.a(:,2));
-    % result.CCI_ShoulderUni = computeCocontraction(result.a(:,3),result.a(:,4));
-    % result.CCI_Bi = computeCocontraction(result.a(:,5),result.a(:,6));
-    succes = true;
-    
-catch
-    succes = false;
+    % for i = 1:auxdata.N+1
+    %     J_fb(i) = full(functions.f_expectedEffort_fb(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i),wPq,wPqdot));
+    %     J_fb_corrective(i) = full(functions.f_expectedEffort_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
+    %     J_fb_sensoryNoise(i) = full(functions.f_expectedEffort_fb_sensoryNoise(reshape(K_sol(:,i),6,4),wPq,wPqdot));
+    %     J_var_act(i) = trace(Pmat_sol(1:6,1:6,i));
+    %     e_fb_corrective(:,i) = full(functions.f_fb_corrective(X_sol(:,i),Pmat_sol(:,:,i),reshape(K_sol(:,i),6,4),EE_ref_sol(:,i)));
+    % end
+    % succes = true;
 end
 
 
