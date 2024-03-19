@@ -9,3 +9,6 @@ speedaccuracy_results/*/
 *.synctex.gz
 *.aux
 *.fls
+
+# matlab
+*.asv

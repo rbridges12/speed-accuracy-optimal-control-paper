@@ -18,17 +18,15 @@
 wM_std_VEC = [0.05]; %0.01 0.025 0.05 0.075 0.1
 wPq_std_VEC = [3e-4]; % 6e-4];% 1.2e-3];% 2.4e-3];
 wPqdot_std_VEC = [2.4e-3 ];%4.8e-3];% 9.6e-3];
-% addpath("C:\Program Files\casadi-windows-matlabR2016a-v3.5.5")/
 addpath("~/casadi-3.6.5")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/OCP/Stochastic/6muscles")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/OCP/Stochastic/6muscles/stochasticForwardSim")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/Muscle_LMT_dM")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/MuscleModel")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/ArmModel")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/MusculoskeletalDynamics")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/Integrator")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/OtherFunctions")
-addpath("~/repos/SOC_Paper/SOC_PAPER_REACHING/plotFunctions")
+addpath("./6muscle_control")
+addpath("./6muscle_control/stochasticForwardSim")
+addpath("./Muscle_LMT_dM")
+addpath("./MuscleModel")
+addpath("./ArmModel")
+addpath("./MusculoskeletalDynamics")
+addpath("./Integrator")
+addpath("./plotFunctions")
 listing = dir();
 for i = 1:length(wM_std_VEC)
     for j = 1:length(wPq_std_VEC)
@@ -43,6 +41,7 @@ for i = 1:length(wM_std_VEC)
             targetGuess = 'CIRCLE';
             saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
             guessName = ['result_time_0.8_' targetGuess '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str( wPq_std) '_' num2str(wPqdot_std) '.mat'];
+            % guessName = [];
             % [resultDC_1,succesDC_1] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
             [resultShooting_1,succesShooting_1] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
             plotResults(resultShooting_1);
