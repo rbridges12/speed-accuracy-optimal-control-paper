@@ -201,7 +201,7 @@ optionssol.ipopt.max_iter = 10000;
 optionssol.ipopt.hessian_approximation = 'limited-memory';
 opti.solver('ipopt',optionssol);
 
-% try
+try
     tic;
 %     result = solve_NLPSOL(opti,optionssol);
     sol = opti.solve();
@@ -268,13 +268,13 @@ opti.solver('ipopt',optionssol);
     
     
     
-    % result.CCI_ElbowUni = computeCocontraction(result.a(:,1),result.a(:,2));
-    % result.CCI_ShoulderUni = computeCocontraction(result.a(:,3),result.a(:,4));
-    % result.CCI_Bi = computeCocontraction(result.a(:,5),result.a(:,6));
+    result.CCI_ElbowUni = computeCocontraction(result.a(:,1),result.a(:,2));
+    result.CCI_ShoulderUni = computeCocontraction(result.a(:,3),result.a(:,4));
+    result.CCI_Bi = computeCocontraction(result.a(:,5),result.a(:,6));
     succes = true;
     
-% catch
-%     succes = false;
+catch
+    succes = false;
 end
 
 
