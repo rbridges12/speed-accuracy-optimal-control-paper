@@ -30,10 +30,11 @@ for i = 1:auxdata.N
     DdX_DX_i = functions.f_DdX_DX(X(:,i),e_ff(:,i),K,EE_ref(:,i),auxdata.wM,auxdata.wPq,auxdata.wPqdot);
     DdZ_DX_i = functions.f_DdX_DX(X(:,i+1),e_ff(:,i+1),K,EE_ref(:,i+1),auxdata.wM,auxdata.wPq,auxdata.wPqdot);
     DdX_Dw_i = functions.f_DdX_Dw(X(:,i),e_ff(:,i),K,EE_ref(:,i),auxdata.wM,auxdata.wPq,auxdata.wPqdot);
+    DdZ_Dw_i = functions.f_DdX_Dw(X(:,i+1),e_ff(:,i+1),K,EE_ref(:,i+1),auxdata.wM,auxdata.wPq,auxdata.wPqdot);
     
     DG_DX_i = functions.f_DG_DX(DdX_DX_i);
     DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i);
-    DG_DW_i = functions.f_DG_DW(DdX_Dw_i);
+    DG_DW_i = functions.f_DG_DW(DdX_Dw_i, DdZ_Dw_i);
     M_i = DG_DZ_i^(-1);
     M(:,(i-1)*auxdata.nStates + 1:i*auxdata.nStates) = full(M_i);
     Pmat_i = full(M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*auxdata.sigma_w*DG_DW_i')*M_i'); % + dGdW*sigmaW*dGdW'

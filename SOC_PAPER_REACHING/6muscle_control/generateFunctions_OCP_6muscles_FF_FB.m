@@ -48,8 +48,9 @@ functions.f_DG_DZ = f_DG_DZ;
 
 % Sensitivity of trapezoidal integration scheme to changes in motor noise
 DdX_Dw_MX = MX.sym('DdX_Dw_MX',auxdata.nStates,6); 
-DG_DW_MX = DG_DW_Trapezoidal(DdX_Dw_MX,auxdata.dt);
-f_DG_DW = Function('f_DG_DW',{DdX_Dw_MX},{DG_DW_MX});
+DdX_plus_Dw_MX= MX.sym('DdX_plus_Dw_MX',auxdata.nStates,6); 
+DG_DW_MX = DG_DW_Trapezoidal(DdX_Dw_MX, DdX_plus_Dw_MX, auxdata.dt);
+f_DG_DW = Function('f_DG_DW',{DdX_Dw_MX, DdX_plus_Dw_MX},{DG_DW_MX});
 functions.f_DG_DW = f_DG_DW;
 
 % Some other useful function definitions

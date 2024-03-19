@@ -117,10 +117,11 @@ for i = 1:N
     DdX_DX_i = functions.f_DdX_DX(X_i,e_ff_i,K_i,EE_ref_i,wM,wPq,wPqdot);
     DdZ_DX_i = functions.f_DdX_DX(X_i_plus,e_ff_i_plus,K_i_plus,EE_ref_i_plus,wM,wPq,wPqdot);
     DdX_Dw_i = functions.f_DdX_Dw(X_i,e_ff_i,K_i,EE_ref_i,wM,wPq,wPqdot);
+    DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,e_ff_i_plus,K_i_plus,EE_ref_i_plus,wM,wPq,wPqdot);
     
     DG_DX_i = functions.f_DG_DX(DdX_DX_i);
     DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i);
-    DG_DW_i = functions.f_DG_DW(DdX_Dw_i);
+    DG_DW_i = functions.f_DG_DW(DdX_Dw_i, DdZ_Dw_i);
     
     opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
     J_fb = J_fb + (functions.f_expectedEffort_fb(X_i,Pmat_i,K_i,EE_ref_i,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2; %expectedEffort_fb(i);
