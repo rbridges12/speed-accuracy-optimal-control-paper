@@ -8,24 +8,24 @@ wM_MX = MX.sym('wM_MX',2);        % Motor noise
 wPq_MX = MX.sym('wPq_MX',2);      % Sensor position noise
 wPqdot_MX = MX.sym('wPqdot_MX',2);% Sensor velocity noise
 EE_ref_MX = MX.sym('EE_ref_MX', 4); % Reference end-effector kinematics
-EE_MX = [EndEffectorPos(X_MX(7:8),auxdata); EndEffectorVel(X_MX(7:8),X_MX(9:10),auxdata)]; % End-effector kinematics computed from joint kinematics 
-K_MX = MX.sym('K_MX',6,4);        % Feedback gains
-e_fb_MX = K_MX*((EE_MX - EE_ref_MX) + [wPq_MX;wPqdot_MX]); % Feedback excitations composed from the feedback of the end-effector kinematics error, corrupted by sensor noise
-u_MX = e_ff_MX + e_fb_MX;         % Total muscle excitations (ff + fb)
+% EE_MX = [EndEffectorPos(X_MX(1:2),auxdata); EndEffectorVel(X_MX(1:2),X_MX(3:4),auxdata)]; % End-effector kinematics computed from joint kinematics 
+% K_MX = MX.sym('K_MX',6,4);        % Feedback gains
+% e_fb_MX = K_MX*((EE_MX - EE_ref_MX) + [wPq_MX;wPqdot_MX]); % Feedback excitations composed from the feedback of the end-effector kinematics error, corrupted by sensor noise
+% u_MX = e_ff_MX + e_fb_MX;         % Total muscle excitations (ff + fb)
 
 % unperturbed stochastic forward dynamics
-dX_MX = forwardMusculoskeletalDynamics_motorNoise(X_MX,u_MX,zeros(2,1),wM_MX,auxdata); 
-f_forwardMusculoskeletalDynamics = Function('f_forwardMusculoskeletalDynamics',{X_MX,e_ff_MX,K_MX,EE_ref_MX,wM_MX,wPq_MX,wPqdot_MX},{dX_MX});  
+dX_MX = forwardMusculoskeletalDynamics_motorNoise(X_MX, e_ff_MX, 0, wM_MX, auxdata); 
+f_forwardMusculoskeletalDynamics = Function('f_forwardMusculoskeletalDynamics',{X_MX,e_ff_MX,wM_MX},{dX_MX});  
 functions.f_forwardMusculoskeletalDynamics = f_forwardMusculoskeletalDynamics;
 
-% Sensitivity of forward dynamics to states
+% Jacobian of forward dynamics wrt state
 DdX_DX_MX = jacobian(dX_MX, X_MX');
-f_DdX_DX = Function('f_DdX_DX',{X_MX,e_ff_MX,K_MX,EE_ref_MX,wM_MX,wPq_MX,wPqdot_MX},{DdX_DX_MX});
+f_DdX_DX = Function('f_DdX_DX',{X_MX,e_ff_MX,wM_MX},{DdX_DX_MX});
 functions.f_DdX_DX = f_DdX_DX;
 
-% Sensitivity of forward dynamics to motor noise
-DdX_DwM_MX = jacobian(dX_MX, [wM_MX' wPq_MX' wPqdot_MX']);
-f_DdX_Dw = Function('f_DdX_Dw',{X_MX,e_ff_MX,K_MX,EE_ref_MX,wM_MX,wPq_MX,wPqdot_MX},{DdX_DwM_MX});
+% Jacobian of forward dynamics wrt motor noise
+DdX_DwM_MX = jacobian(dX_MX, wM_MX');
+f_DdX_Dw = Function('f_DdX_Dw',{X_MX,e_ff_MX,wM_MX},{DdX_DwM_MX});
 functions.f_DdX_Dw = f_DdX_Dw;
 
 % Trapezoidal integration scheme (implicit)

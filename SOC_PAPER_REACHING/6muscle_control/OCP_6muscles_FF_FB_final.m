@@ -24,7 +24,7 @@ T = auxdata.T;
 dt = 0.01; auxdata.dt = dt; % time step
 N = round(T/dt); auxdata.N = N;
 time = 0:dt:T; auxdata.time = time;
-nStates = 10; auxdata.nStates = nStates; % #states (6 muscle states + 2 positions + 2 velocities)
+nStates = 4; auxdata.nStates = nStates; % #states (6 muscle states + 2 positions + 2 velocities)
 wM = (wM_std*ones(2,1)).^2/dt; auxdata.wM = wM; % Motor noise: go from std of continuous noise source to variance of discrete sample
 wPq = (wPq_std*ones(2,1)).^2/dt; auxdata.wPq = wPq; % Sensor position noise: go from std of continuous noise source to variance of discrete sample
 wPqdot = (wPqdot_std*ones(2,1)).^2/dt; auxdata.wPqdot = wPqdot; % Sensor velocity noise: go from std of continuous noise source to variance of discrete sample
