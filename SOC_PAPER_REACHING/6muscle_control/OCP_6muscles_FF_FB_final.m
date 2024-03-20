@@ -1,18 +1,4 @@
-function result = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName)
-%% SECTION TITLE
-% DESCRIPTIVE TEXT
-if strcmp(target,'CIRCLE')
-    targetNR = 1;
-    %     guessName = 'result_CIRCLE.mat';
-elseif strcmp(target,'BAR')
-    targetNR = 2;
-    %     guessName = 'result_BAR.mat';
-elseif strcmp(target,'OBSTACLE')
-    targetNR = 3;
-    %     guessName = 'result_OBSTACLE.mat';
-else
-    error('Unknown target specified')
-end
+function result = OCP_6muscles_FF_FB_final(forceField,wM_std)
 
 import casadi.*
 
@@ -53,54 +39,18 @@ final_pos = [shoulder_pos_final; final_pos];
 EE_final = EndEffectorPos(final_pos,auxdata);
 
 
-% % Initial guess controls
-% guessName = 'result_time_0.8_BAR_forceField_0_0.05_0.0003_0.0024_.mat';
-% if isempty(guessName)
-        X_init = opti.variable(nStates,1);
-        opti.set_initial(X_init, [initial_pos; 0; 0]);
-        X_guess = zeros(nStates,N+1);
-        X_guess(1,:) = interp1([0 T], [initial_pos(1) final_pos(1)],time);
-        X_guess(2,:) = interp1([0 T], [initial_pos(2) final_pos(2)],time);
-        X = opti.variable(nStates,N+1);
-        opti.set_initial(X, X_guess);
-        e_ff = opti.variable(6,N+1);
-        opti.set_initial(e_ff, 0.01);
-        % K = opti.variable(6*4,N+1); opti.set_initial(K, 0.01);
-        % EE_ref = opti.variable(4,N+1); opti.set_initial(EE_ref, 0.01);
-        M = opti.variable(nStates,nStates*N);
-        opti.set_initial(M, 0.01);
-        % Pmat_init = [1e-6;1e-6;1e-6;1e-6;1e-6;1e-6;1e-4;1e-4;1e-7;1e-7;].*eye(10);
-        Pmat_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
-
-% else
-    % load(guessName);
-
-    % % Interpolate guess to new mesh or new timing (if reaching movement timing
-    % % has changed)
-    % timeStepsGuess_new = size(result.X,2)-1;
-    % timeVec_new = 0:T/timeStepsGuess_new:T;
-    % e_ff_guess = interp1(timeVec_new,result.e_ff,time);
-    % K_guess = interp1(timeVec_new,result.K',time)';
-
-    % X_init_guess = result.X(:,1);
-    % Pmat_init = [1e-6;1e-6;1e-6;1e-6;1e-6;1e-6;1e-4;1e-4;1e-7;1e-7;].*eye(10);
-    % [X_guess, M_guess, EE_ref_guess, Pmat_guess] = approximateForwardSim(X_init_guess,Pmat_init,e_ff_guess',K_guess,auxdata,functions);
-    % if abs(EE_ref_guess(1,end)) > 0.1 % control of initial guess is not very stable/precise, better to violate the dynamics and provide trajectories that satisfy the constraints
-    %     X_init = opti.variable(nStates,1); opti.set_initial(X_init, X_init_guess);
-    %     X = opti.variable(nStates,N+1); opti.set_initial(X, interp1(timeVec_new,result.X',time)');
-    %     e_ff = opti.variable(6,N+1); opti.set_initial(e_ff, e_ff_guess');
-    %     K = opti.variable(6*4,N+1); opti.set_initial(K, K_guess);
-    %     EE_ref = opti.variable(4,N+1); opti.set_initial(EE_ref, result.EE_ref);
-    %     M = opti.variable(nStates,nStates*N); opti.set_initial(M, result.M);
-    % else
-    %     X_init = opti.variable(nStates,1); opti.set_initial(X_init, X_init_guess);
-    %     X = opti.variable(nStates,N+1); opti.set_initial(X, X_guess);
-    %     e_ff = opti.variable(6,N+1); opti.set_initial(e_ff, e_ff_guess');
-    %     K = opti.variable(6*4,N+1); opti.set_initial(K, K_guess);
-    %     EE_ref = opti.variable(4,N+1); opti.set_initial(EE_ref, EE_ref_guess);
-    %     M = opti.variable(nStates,nStates*N); opti.set_initial(M, M_guess);
-    % end
-% end
+X_init = opti.variable(nStates,1);
+opti.set_initial(X_init, [initial_pos; 0; 0]);
+X_guess = zeros(nStates,N+1);
+X_guess(1,:) = interp1([0 T], [initial_pos(1) final_pos(1)],time);
+X_guess(2,:) = interp1([0 T], [initial_pos(2) final_pos(2)],time);
+X = opti.variable(nStates,N+1);
+opti.set_initial(X, X_guess);
+e_ff = opti.variable(6,N+1);
+opti.set_initial(e_ff, 0.01);
+M = opti.variable(nStates,nStates*N);
+opti.set_initial(M, 0.01);
+Pmat_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 
 Pmat_i = Pmat_init;
 J_fb = 0;
@@ -116,11 +66,6 @@ for i = 1:N
     opti.subject_to(functions.f_G_Trapezoidal(X_i,X_i_plus,dX_i,dX_i_plus)*1e3 == 0);
     
     M_i = M(:,(i-1)*nStates + 1:i*nStates);
-    % EE_ref_i = EE_ref(:,i);
-    % EE_ref_i_plus = EE_ref(:,i+1);
-    
-    % K_i = reshape(K(:,i),6,4);
-    % K_i_plus = reshape(K(:,i+1),6,4);
     
     DdX_DX_i = functions.f_DdX_DX(X_i,e_ff_i,wM);
     DdZ_DX_i = functions.f_DdX_DX(X_i_plus,e_ff_i_plus,wM);
@@ -131,27 +76,13 @@ for i = 1:N
     DG_DW_i = functions.f_DG_DW(DdX_Dw_i);
     
     opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
-    % J_fb = J_fb + (functions.f_expectedEffort_fb(X_i,Pmat_i,K_i,EE_ref_i,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2; %expectedEffort_fb(i);
-    
-    % Obstacle
-    % if targetNR == 3
-    %     if i*dt > T*5/8
-    %         P_q_i = Pmat_i(7:8,7:8);
-    %         P_EEPos_i = functions.f_P_EEPos(X(7:8,i),P_q_i);
-    %         opti.subject_to(P_EEPos_i(1,1) < 0.004^2);
-    %         opti.subject_to(-1e-4 < EE_ref_i(1) < 1e-4)
-    %     end
-    % end
     
     Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i';
     
 end
-% J_fb = J_fb + (functions.f_expectedEffort_fb(X_i_plus,Pmat_i,K_i_plus,EE_ref_i_plus,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2;
 
-%% Boundary conditions
- 
 % % Initial conditions
-EE = [EndEffectorPos(X(1:2,:),auxdata); EndEffectorVel(X(1:2,:),X(3:4,:),auxdata)];
+% EE = [EndEffectorPos(X(1:2,:),auxdata); EndEffectorVel(X(1:2,:),X(3:4,:),auxdata)];
 % opti.subject_to(EE - EE_ref == 0);
 opti.subject_to(X(:,1) == X_init); % Set X_init to be equal to the first state
 opti.subject_to(X_init - [initial_pos;0;0] == 0); % Initial position and velocity
@@ -175,15 +106,12 @@ P_q_final = Pmat_i(1:2, 1:2);
 P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
 P_q_qdot_final = Pmat_i;
 P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
-% if targetNR == 1 || targetNR == 3
-% opti.subject_to(P_EEPos_final(1,1) < 0.004^2);
-% opti.subject_to(P_EEPos_final(2,2) < 0.004^2);
-% opti.subject_to(P_EEVel_final(1,1) < 0.05^2);
-% opti.subject_to(P_EEVel_final(2,2) < 0.05^2);V.
-
-% Limit variance on activations in endpoint
-% opti.subject_to((Pmat_i(1,1) - 0.01^2) < 0); opti.subject_to((Pmat_i(2,2) - 0.01^2) < 0); opti.subject_to((Pmat_i(3,3) - 0.01^2) < 0);
-% opti.subject_to((Pmat_i(4,4) - 0.01^2) < 0); opti.subject_to((Pmat_i(5,5) - 0.01^2) < 0); opti.subject_to((Pmat_i(6,6) - 0.01^2) < 0);
+pos_dev = 0.04^2;
+vel_dev = 0.5^2;
+opti.subject_to(P_EEPos_final(1,1) < pos_dev);
+opti.subject_to(P_EEPos_final(2,2) < pos_dev);
+opti.subject_to(P_EEVel_final(1,1) < vel_dev);
+opti.subject_to(P_EEVel_final(2,2) < vel_dev);
 
 % Bounds on the feedforward excitations, activations and joint angles
 opti.subject_to(0.001 < e_ff(:) < 1);

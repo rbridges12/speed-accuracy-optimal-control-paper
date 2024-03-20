@@ -28,8 +28,6 @@ Pmat = NaN(auxdata.nStates,auxdata.nStates,auxdata.N+1);
 Pmat(:,:,1) = Pmat_i;
 
 for i = 1:auxdata.N
-    % K = zeros(6,4);
-    
     DdX_DX_i = functions.f_DdX_DX(X(:,i),e_ff(:,i),auxdata.wM);
     DdZ_DX_i = functions.f_DdX_DX(X(:,i+1),e_ff(:,i+1),auxdata.wM);
     DdX_Dw_i = functions.f_DdX_Dw(X(:,i),e_ff(:,i),auxdata.wM);
