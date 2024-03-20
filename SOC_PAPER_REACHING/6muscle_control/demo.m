@@ -28,40 +28,10 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 listing = dir();
-for i = 1:length(wM_std_VEC)
-    for j = 1:length(wPq_std_VEC)
-        for k = 1:length(wPqdot_std_VEC)
-            wM_std = wM_std_VEC(i);
-            wPq_std = wPq_std_VEC(j);
-            wPqdot_std = wPqdot_std_VEC(k);
-            forceField = 0;
 
-            % Example 1
-            target = 'CIRCLE';
-            targetGuess = 'CIRCLE';
-            saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            % guessName = ['result_time_0.8_' targetGuess '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str( wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            guessName = [];
-            % [resultDC_1,succesDC_1] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-            result = OCP_6muscles_FF_FB_final(forceField,wM_std);
-            %%
-            plotResults(result);
+wM_std = wM_std_VEC(1);
+forceField = 0;
 
-            % Example 2
-            % target = 'BAR';
-            % targetGuess = 'CIRCLE';
-            % saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            % guessName = ['result_time_0.8_' targetGuess '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str( wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            % [resultDC_2,succesDC_2] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-            % [resultShooting_2,succesShooting_2] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-
-            % % Example 3
-            % target = 'OBSTACLE';
-            % targetGuess = 'CIRCLE';
-            % saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            % guessName = ['result_time_0.8_' targetGuess '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str( wPq_std) '_' num2str(wPqdot_std) '.mat'];
-            % [resultDC_3,succesDC_3] = OCP_6muscles_FF_FB_final_DCversion(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-            % [resultShooting_3,succesShooting_3] = OCP_6muscles_FF_FB_final(target,forceField,wM_std,wPq_std,wPqdot_std,guessName);
-        end
-    end
-end
+% saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
+result = OCP_6muscles_FF_FB_final(forceField,wM_std);
+plotResults(result);

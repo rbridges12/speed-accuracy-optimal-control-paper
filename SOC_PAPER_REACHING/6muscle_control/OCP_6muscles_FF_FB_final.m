@@ -39,8 +39,6 @@ final_pos = [shoulder_pos_final; final_pos];
 EE_final = EndEffectorPos(final_pos,auxdata);
 
 
-X_init = opti.variable(nStates,1);
-opti.set_initial(X_init, [initial_pos; 0; 0]);
 X_guess = zeros(nStates,N+1);
 X_guess(1,:) = interp1([0 T], [initial_pos(1) final_pos(1)],time);
 X_guess(2,:) = interp1([0 T], [initial_pos(2) final_pos(2)],time);
@@ -82,11 +80,8 @@ for i = 1:N
 end
 
 % % Initial conditions
-% EE = [EndEffectorPos(X(1:2,:),auxdata); EndEffectorVel(X(1:2,:),X(3:4,:),auxdata)];
-% opti.subject_to(EE - EE_ref == 0);
-opti.subject_to(X(:,1) == X_init); % Set X_init to be equal to the first state
-opti.subject_to(X_init - [initial_pos;0;0] == 0); % Initial position and velocity
-dX_init = functions.f_forwardMusculoskeletalDynamics(X_init,e_ff(:,1),0); % Initial state derivative
+opti.subject_to(X(:,1) - [initial_pos;0;0] == 0); % Initial position and velocity
+dX_init = functions.f_forwardMusculoskeletalDynamics(X(:,1),e_ff(:,1),0); % Initial state derivative
 opti.subject_to(dX_init([3:4]) == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
 
 % Reaching motion must end in the final reach position with zero angular joint velocity
@@ -135,9 +130,9 @@ opti.solver('ipopt',optionssol);
 
     sol = opti.solve();
     e_ff_sol = sol.value(e_ff);
-    % K_sol = sol.value(K);
-    X_init_sol = sol.value(X_init);
-    [X_sol, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,e_ff_sol,auxdata,functions);
+    X_sol = sol.value(X);
+    X_init_sol = X_sol(:,1);
+    [X_sol_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,e_ff_sol,auxdata,functions);
     % [X_sol, ~, EE_ref_sol, Pmat_sol] = approximateForwardSim(X_init_sol,Pmat_init,e_ff_sol,K_sol,auxdata,functions);
     
     for i = 1:N+1
@@ -155,11 +150,9 @@ opti.solver('ipopt',optionssol);
     
     clear result;
     result.e_ff = e_ff_sol';
-    result.X = X_sol;
-    % result.a = X_sol(1:6,:)';
+    result.X = X_sol_sim;
     result.q = X_sol(1:2,:)';
     result.qdot = X_sol(3:4,:)';
-    % result.K = K_sol;
     result.M = sol.value(M);
     result.Pmat = Pmat_sol;
     result.time = 0:dt:T;
