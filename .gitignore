@@ -12,3 +12,4 @@ speedaccuracy_results/*/
 
 # matlab
 *.asv
+*/data/*.mat
