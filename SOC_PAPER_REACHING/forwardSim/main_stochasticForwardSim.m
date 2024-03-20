@@ -10,7 +10,7 @@ for j = 1:length(listing)
         name = listing(j).name;
         load(name);
         if ~isfield(result,'X_stoch_unperturbed')
-            functions = generateFunctions_OCP_6muscles_FF_FB(result.auxdata);
+            functions = generateFunctions(result.auxdata);
             
             EE_stoch_unperturbed = NaN(4,result.auxdata.N+1,nrStochSims);
             X_stoch_unperturbed = NaN(result.auxdata.nStates,result.auxdata.N+1,nrStochSims);

@@ -1,4 +1,4 @@
-function functions = generateFunctions_OCP_6muscles_FF_FB(auxdata)
+function functions = generateFunctions(auxdata)
 import casadi.*
 
 % FORWARD DYNAMICS
@@ -8,10 +8,6 @@ wM_MX = MX.sym('wM_MX',2);        % Motor noise
 wPq_MX = MX.sym('wPq_MX',2);      % Sensor position noise
 wPqdot_MX = MX.sym('wPqdot_MX',2);% Sensor velocity noise
 EE_ref_MX = MX.sym('EE_ref_MX', 4); % Reference end-effector kinematics
-% EE_MX = [EndEffectorPos(X_MX(1:2),auxdata); EndEffectorVel(X_MX(1:2),X_MX(3:4),auxdata)]; % End-effector kinematics computed from joint kinematics 
-% K_MX = MX.sym('K_MX',6,4);        % Feedback gains
-% e_fb_MX = K_MX*((EE_MX - EE_ref_MX) + [wPq_MX;wPqdot_MX]); % Feedback excitations composed from the feedback of the end-effector kinematics error, corrupted by sensor noise
-% u_MX = e_ff_MX + e_fb_MX;         % Total muscle excitations (ff + fb)
 
 % unperturbed stochastic forward dynamics
 dX_MX = forwardMusculoskeletalDynamics_motorNoise(X_MX, e_ff_MX, 0, wM_MX, auxdata); 
@@ -68,20 +64,4 @@ functions.f_EEVel = f_EEVel;
 P_EEVel_MX = jacobian(EEVel_MX,[q_MX qdot_MX])*P_qdot_MX*jacobian(EEVel_MX,[q_MX qdot_MX])';
 f_P_EEVel = Function('f_P_EEVel',{q_MX,qdot_MX,P_qdot_MX},{P_EEVel_MX}); % Covariance of end effector velocity
 functions.f_P_EEVel = f_P_EEVel;
-
-%
-% P_MX = MX.sym('P_MX',auxdata.nStates,auxdata.nStates);
-% sensoryNoise_MX = [wPq_MX;wPqdot_MX].*eye(4);
-% expectedEffort_fb_MX = trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)') + trace(K_MX*sensoryNoise_MX*K_MX');
-% f_expectedEffort_fb = Function('f_expectedEffort_fb',{X_MX,P_MX,K_MX,EE_ref_MX,wPq_MX,wPqdot_MX},{expectedEffort_fb_MX});
-% functions.f_expectedEffort_fb = f_expectedEffort_fb;
-
-% f_fb_corrective = Function('f_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{diag(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
-% functions.f_fb_corrective = f_fb_corrective;
-
-% f_expectedEffort_fb_corrective = Function('f_expectedEffort_fb_corrective',{X_MX,P_MX,K_MX,EE_ref_MX},{trace(jacobian(e_fb_MX,X_MX)*P_MX*jacobian(e_fb_MX,X_MX)')});
-% functions.f_expectedEffort_fb_corrective = f_expectedEffort_fb_corrective;
-
-% f_expectedEffort_fb_sensoryNoise = Function('f_expectedEffort_fb_sensoryNoise',{K_MX,wPq_MX,wPqdot_MX},{trace(K_MX*sensoryNoise_MX*K_MX')});
-% functions.f_expectedEffort_fb_sensoryNoise = f_expectedEffort_fb_sensoryNoise;
 end

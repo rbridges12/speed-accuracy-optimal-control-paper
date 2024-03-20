@@ -1,4 +1,4 @@
-% This file runs a comparison between the shooting and direct collocation
+%  This file runs a comparison between the shooting and direct collocation
 % implementation of the covariance matrix propagation, and this for a
 % specific noise settings and target
 
@@ -20,7 +20,7 @@ wPq_std_VEC = [3e-4]; % 6e-4];% 1.2e-3];% 2.4e-3];
 wPqdot_std_VEC = [2.4e-3 ];%4.8e-3];% 9.6e-3];
 addpath("~/casadi-3.6.5")
 addpath("./6muscle_control")
-addpath("./6muscle_control/stochasticForwardSim")
+addpath("./forwardSim")
 addpath("./Muscle_LMT_dM")
 addpath("./MuscleModel")
 addpath("./ArmModel")
@@ -33,5 +33,5 @@ wM_std = wM_std_VEC(1);
 forceField = 0;
 
 % saveName = ['result_time_0.8_' target '_forceField_' num2str(forceField) '_' num2str(wM_std) '_' num2str(wPq_std) '_' num2str(wPqdot_std) '.mat'];
-result = OCP_6muscles_FF_FB_final(forceField,wM_std);
+result = optimization_6muscles(forceField,wM_std);
 plotResults(result);

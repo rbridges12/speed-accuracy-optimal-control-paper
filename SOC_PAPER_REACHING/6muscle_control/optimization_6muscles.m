@@ -1,4 +1,4 @@
-function result = OCP_6muscles_FF_FB_final(forceField,wM_std)
+function result = optimization_6muscles(forceField,wM_std)
 
     import casadi.*
 
@@ -19,7 +19,7 @@ function result = OCP_6muscles_FF_FB_final(forceField,wM_std)
     auxdata.forceField = forceField;
 
     %%%% Define CasADi functions - for reasons of efficiency and to compute sensitivities (jacobians) of functions
-    functions = generateFunctions_OCP_6muscles_FF_FB(auxdata);
+    functions = generateFunctions(auxdata);
 
     opti = casadi.Opti(); % Create opti instance
 
@@ -103,9 +103,12 @@ function result = OCP_6muscles_FF_FB_final(forceField,wM_std)
     opti.subject_to(P_EEVel_final(2,2) < vel_dev);
 
     % constrain activations and joint angle limits
-    opti.subject_to((0.001 < u(:)) && (u(:) < 1));
-    opti.subject_to((0 < X(1,:)) && (X(1,:) < 180));
-    opti.subject_to((0 < X(2,:)) && (X(2,:) < 180));
+    opti.subject_to(0.001 < u(:) < 1);
+    opti.subject_to(0 < X(1,:) < 180);
+    opti.subject_to(0 < X(2,:) < 180);
+    % opti.subject_to((0.001 < u(:)) && (u(:) < 1));
+    % opti.subject_to((0 < X(1,:)) && (X(1,:) < 180));
+    % opti.subject_to((0 < X(2,:)) && (X(2,:) < 180));
 
     % minimize sum of squared activations
     opti.minimize(1e3*(sumsqr(u)/2)*dt);
