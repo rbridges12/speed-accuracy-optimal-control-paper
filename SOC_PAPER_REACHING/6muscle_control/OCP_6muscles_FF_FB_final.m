@@ -69,7 +69,8 @@ EE_final = EndEffectorPos(final_pos,auxdata);
         % EE_ref = opti.variable(4,N+1); opti.set_initial(EE_ref, 0.01);
         M = opti.variable(nStates,nStates*N);
         opti.set_initial(M, 0.01);
-        Pmat_init = [1e-6;1e-6;1e-6;1e-6;1e-6;1e-6;1e-4;1e-4;1e-7;1e-7;].*eye(10);
+        % Pmat_init = [1e-6;1e-6;1e-6;1e-6;1e-6;1e-6;1e-4;1e-4;1e-7;1e-7;].*eye(10);
+        Pmat_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 
 % else
     % load(guessName);
@@ -142,7 +143,7 @@ for i = 1:N
     %     end
     % end
     
-    Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i'; % + dGdW*sigmaW*dGdW'
+    Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i';
     
 end
 % J_fb = J_fb + (functions.f_expectedEffort_fb(X_i_plus,Pmat_i,K_i_plus,EE_ref_i_plus,wPq,wPqdot) + trace(Pmat_i(1:6,1:6)))/2;
@@ -175,10 +176,10 @@ P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
 P_q_qdot_final = Pmat_i;
 P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
 % if targetNR == 1 || targetNR == 3
-opti.subject_to(P_EEPos_final(1,1) < 0.004^2);
-opti.subject_to(P_EEPos_final(2,2) < 0.004^2);
-opti.subject_to(P_EEVel_final(1,1) < 0.05^2);
-opti.subject_to(P_EEVel_final(2,2) < 0.05^2);
+% opti.subject_to(P_EEPos_final(1,1) < 0.004^2);
+% opti.subject_to(P_EEPos_final(2,2) < 0.004^2);
+% opti.subject_to(P_EEVel_final(1,1) < 0.05^2);
+% opti.subject_to(P_EEVel_final(2,2) < 0.05^2);V.
 
 % Limit variance on activations in endpoint
 % opti.subject_to((Pmat_i(1,1) - 0.01^2) < 0); opti.subject_to((Pmat_i(2,2) - 0.01^2) < 0); opti.subject_to((Pmat_i(3,3) - 0.01^2) < 0);
@@ -213,24 +214,24 @@ opti.solver('ipopt',optionssol);
     
     for i = 1:N+1
         Pmat_sol_i = Pmat_sol(:,:,i);
-        P_q_sol_i = Pmat_sol_i(7:8,7:8);
-        P_EEPos_mat_i = functions.f_P_EEPos(X_sol(7:8,i),P_q_sol_i);
+        P_q_sol_i = Pmat_sol_i(1:2, 1:2);
+        P_EEPos_mat_i = functions.f_P_EEPos(X_sol(1:2,i),P_q_sol_i);
         P_EEPos_sol(:,i) = full([P_EEPos_mat_i(1,1); P_EEPos_mat_i(2,1); P_EEPos_mat_i(2,2)]);
-        P_qdot_sol_i = Pmat_sol_i(7:10,7:10);
-        P_EEVel_mat_i = functions.f_P_EEVel(X_sol(7:8,i),X_sol(9:10,i),P_qdot_sol_i);
+        P_qdot_sol_i = Pmat_sol_i;
+        P_EEVel_mat_i = functions.f_P_EEVel(X_sol(1:2,i),X_sol(3:4,i),P_qdot_sol_i);
         P_EEVel_sol(:,i) = full([P_EEVel_mat_i(1,1); P_EEVel_mat_i(2,1); P_EEVel_mat_i(2,2)]);
     end
     
-    EEPos_sol = EndEffectorPos(X_sol(7:8,:),auxdata)';
-    EEVel_sol = EndEffectorVel(X_sol(7:8,:),X_sol(9:10,:),auxdata)';
+    EEPos_sol = EndEffectorPos(X_sol(1:2,:),auxdata)';
+    EEVel_sol = EndEffectorVel(X_sol(1:2,:),X_sol(3:4,:),auxdata)';
     
     clear result;
     result.e_ff = e_ff_sol';
     result.X = X_sol;
-    result.a = X_sol(1:6,:)';
-    result.q = X_sol(7:8,:)';
-    result.qdot = X_sol(9:10,:)';
-    result.K = K_sol;
+    % result.a = X_sol(1:6,:)';
+    result.q = X_sol(1:2,:)';
+    result.qdot = X_sol(3:4,:)';
+    % result.K = K_sol;
     result.M = sol.value(M);
     result.Pmat = Pmat_sol;
     result.time = 0:dt:T;
