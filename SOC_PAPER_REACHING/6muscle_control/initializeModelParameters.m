@@ -23,7 +23,7 @@ auxdata.LMT_coefficients = LMT_coefficients; % First shoulder muscles, then elbo
 auxdata.Fiso = 31.8*[ 18; 14; 22; 12; 5; 10];
 auxdata.vMtilde_max = [10;10;10;10;10;10];
 auxdata.muscleDampingCoefficient = [ 0.01; 0.01; 0.01; 0.01; 0.01; 0.01];
-auxdata.tau = 0.150; % Delay
+% auxdata.tau = 0.150; % Delay
 
 % Parameters of active muscle force-velocity characteristic
 load('ActiveFVParameters.mat','ActiveFVParameters');
@@ -39,10 +39,6 @@ auxdata.Faparam = Faparam;
 e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
-
-auxdata.indices_P = [1 2 3 4 5 6 7 8 9 10; 2 11:19; 3 12 20:27 ; 4 13 21 28:34; 5 14 22 29 35:40; 6 15 23 30 36 41:45; 7 16 24 31 37 42 46:49; 8 17 25 32 38 43 47 50:52; 9 18 26 33 39 44 48 51 53 54;10 19 27 34 40 45 49 52 54 55];
-auxdata.varIndices_P = [1 11 20 28 35 41 46 50 53 55 ];
-% auxdata.covarIndices_P = [2 3 4 5 6 7 8 10 11 12 13 14 15 17 18 19 20 21 23 24 25 26 28 29 30 32 33 35];
 
 end
 

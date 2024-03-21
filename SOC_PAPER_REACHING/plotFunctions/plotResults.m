@@ -15,14 +15,14 @@ for i = 1:6
     subplot(3,2,i)
     hold on;
     stairs(result.time,result.e_ff(:,i), 'r', 'LineWidth', 2);
-    stdTraj = sqrt(squeeze(result.Pmat(i,i,:)));
-    plotMeanAndVar(result.time,result.a(:,i),stdTraj,'b');
+    % stdTraj = sqrt(squeeze(result.Pmat(i,i,:)));
+    % plotMeanAndVar(result.time,result.a(:,i),stdTraj,'b');
     title(titles(i))
     ylim([-0.1 0.1]);
     xlim([0 t_end]);
     xlabel('Time (s)');
     ylabel('Activation');
-    legend('Planned Trajectory (feedforward)', 'Actual Trajectory (feedback)', 'Actual $\pm$ std dev','Interpreter','latex');
+    % legend('Planned Trajectory (feedforward)', 'Actual Trajectory (feedback)', 'Actual $\pm$ std dev','Interpreter','latex');
 end
 
 % tab = uitab(hTabGroup, 'Title', ['Joint Angles']);
@@ -31,7 +31,7 @@ titles = {'Shoulder','Elbow'};
 figure;
 for i = 1:2
     subplot(2,2,i)
-    stdTraj = sqrt(squeeze(result.Pmat(i+6,i+6,:)));
+    stdTraj = sqrt(squeeze(result.Pmat(i,i,:)));
     plotMeanAndVar(result.time,180/pi*result.q(:,i),180/pi*stdTraj,'b'); 
     title(titles(i))
     ylim([0 180]);
@@ -43,7 +43,7 @@ end
 titles = {'Shoulder','Elbow'};
 for i = 1:2
     subplot(2,2,i+2)
-        stdTraj = sqrt(squeeze(result.Pmat(i+8,i+8,:)));
+        stdTraj = sqrt(squeeze(result.Pmat(i+2,i+2,:)));
 
     plotMeanAndVar(result.time,180/pi*result.qdot(:,i),180/pi*stdTraj,'b'); 
     title(titles(i))
