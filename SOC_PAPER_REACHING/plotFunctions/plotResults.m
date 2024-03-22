@@ -38,6 +38,7 @@ for i = 1:2
     xlim([0 t_end]);
     xlabel('Time (s)');
     ylabel('Angle (deg)');
+    legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
 end
 
 titles = {'Shoulder','Elbow'};
@@ -51,6 +52,7 @@ for i = 1:2
     xlim([0 t_end]);
     xlabel('Time (s)');
     ylabel('Angular Velocity (deg/s)'); 
+    legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
 end
 
 
@@ -82,6 +84,8 @@ ylim([-0.1 0.1]);
 xlim([0 t_end]);
 xlabel('Time (s)');
 ylabel('X (m)');
+legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
+
 subplot(1,3,2)
 stdTraj = sqrt(result.P_EEPos(3,:)');
 plotMeanAndVar(result.time,result.EEPos(:,2),stdTraj,'b');
@@ -90,6 +94,7 @@ ylim([0 1]);
 xlim([0 t_end]);
 xlabel('Time (s)');
 ylabel('Y (m)');
+legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
 
 subplot(1,3,3)
 plot(result.EEPos(:,1),result.EEPos(:,2),'LineWidth',2); hold on;
@@ -102,6 +107,7 @@ ylim([0 1]);
 xlim([-0.1 0.1]);
 xlabel('X (m)');
 ylabel('Y (m)');
+legend("Mean Trajectory", "95\% Confidence Ellipse",'Interpreter','latex');
 axis equal
 
 

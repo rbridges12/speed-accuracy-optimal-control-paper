@@ -1,8 +1,9 @@
 \documentclass[table,12pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx, float, amsmath, amssymb, multicol}
+\usepackage{indentfirst}
 
-\title{\textbf{EECS 599 Project Proposal:} \\
+\title{\textbf{EECS 598 Project Progress Report:} \\
     Comparison of Human and Simulated Reaching Movements Using Trajectory Optimization with Signal-Dependent Motor Noise}
 
 \author{Riley Bridges and Ethan Parham \\\\
@@ -12,57 +13,38 @@
 \begin{document}
 
 \maketitle
+\section{Executive Summary}
+Our team has been focusing on both finding and implementing a method for combining signal dependent motor noise as well as trajectory optimization techniques in order to model the speed accuracy trade off in human reaching motion. We began by investigating the feasibility of a high fidelity 47 muscle model using OpenSim, and after determining that the model was not pratical for our application transitioned to using a simplified 6 muscle model in Matlab. We are now implementing trajectory optimization with our new model and adapting it to be used for analysis of the speed accuracy tradeoff.
 \newpage
 
-\section{Team Charter}
-\subsection{Biographies}
-\begin{itemize}
-    \item \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.3\textwidth]{riley_picture.jpg}
-    \end{figure}
-    \textbf{Riley Bridges:} I am a masters student at the University of Michigan studying Electrical and Computer Engineering. My main background and interest is in computer science and robotics. I love most activities involving nature, especially hiking, cycling, running, and exploration.
 
-    \item \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.3\textwidth]{ethan_picture.png}
-    \end{figure}
-    \textbf{Ethan Parham:} I am a graduate student at the University of Michigan studying Mechanical Engineering, concentrating on design and controls. I have a Bachelor's degree in Mechanical Engineering, with a minor in Computer Science. After I graduate, my dream role would be on a team developing prosthetics, but I also am interested in the automotive industry and environmental sustainability. One of my favorite hobbies is music, and I am heavily involved with the athletic bands at Michigan. I play trumpet in the Michigan Marching band and Hockey Band, in addition to the trumpet ensemble. 
+\section{Team Member Contributions}
+\begin{itemize}
+    \item Analysis and setup of OpenSim software for use in project
+        \begin{itemize}
+        \item Ethan: Attempted to run the 47 muscle OpenSim model on a Windows machine with no success.
+        \item Riley: Worked extensively to run the OpenSim model. Discovered difficulty both with conflicting versions of the model and with running OpenSim on Linux.
+    \end{itemize}
+    \item Further literature review for signal-dependent motor noise
+    \begin{itemize}
+        \item Ethan: Explored existing research involving the speed accuracy trade off and motor noise. Identified a general lack of papers which implement both motor noise and trajectory optimization.
+        \item Riley: Read through literature and helped identify which methods could be adapted for use in our project.
+    \end{itemize}
+    \item The team decided to move away from the OpenSim model and began investigation and setup of a simplified Matlab model for modeling trajectory reaching
+    \begin{itemize}
+        \item Ethan: Identified a potential model using Matlab which could be adapted as an alternative to the 47 muscle OpenSim model.
+        \item Riley: Streamlined the model to remove functions and code not related to our goals for the project.
+    \end{itemize}
+    \item Adapting model to be used for speed accuracy trade off analysis
+    \begin{itemize}
+        \item Ethan: Began working on adding motor noise to the motor commands instead of joint torques as was originally implemented in the Matlab model
+        \item Riley: Began developing an alternative optimization model 
+    \end{itemize}
+    \item Both team members were involved with writing the progress report.
+    
 \end{itemize}
 
-\subsection{Vision Statement}
-The members of the team aim to be able to apply controls techniques we learned in our undergraduate classes to the field of sensorimotor control. We want to be able to adapt and understand the work of other researchers, while also being able to enhance their models and control systems with our own meaningful contributions. By the end of the project, we should have a better understanding of control systems and the biological elements which relate to them, and be able to work more efficiently in a multidisciplinary field. As a result, we will be able to apply our skills to future projects even if they do not directly related to biological control.
-
-\subsection{Responsibilities}
-Each team member is expected to do an equal share of the work over the course of the project. Work will be divided according to the strengths of the team members, but the expectation is that each team member will have a good understanding of all aspects of the project and will be able to provide input to the other team members as needed. All team members should do their best to meet internal deadlines to the best of their ability. If they are unable to do so, they should notify other team members as quickly as possible so alternative plans can be made. 
-
-\subsection{Communication Plan}
-The team will communicate primarily over text when outside of meetings or class. Communication should be frequent, as it is important for all team members to be on the same page about their progress and any questions or concerns they may have. Any questions or concerns should be addressed as soon as possible, in order to maximize the working efficiency of all team members.
-
-\subsection{Conflict Resolution}
-Conflicts about content or procedure will be resolved through discussion within the group. If no resolution can be found, or the issue is more serious, then the group will propose issue to the professor for feedback or advice from a third party since as the group is a partnership no majority vote can be made. Hopefully, this feedback will allow the team to resolve their conflict.
-
-
-\subsection{Meeting Plan}
-The team will at minimum meet from 3-4 on Fridays on zoom. Additional or longer meetings can be scheduled as necessary. An alternative weekly meeting time is from 12-1 on Thursdays. The primary goal of the weekly meetings will be to ensure all team members are on the same page, and to set goals to be accomplished prior to the next meeting. If a team member is unable to attend the meeting, they should let the team know as soon as possible in order to reschedule to the meeting or to learn the contents of the meeting if no meeting can be made possible.
-
-\section{Introduction and Motivation}
-
-The speed-accuracy tradeoff is a phenomena in motor neuroscience which describes the relationship between the speed of the motion and the accuracy required of the task being performed. The tradeoff is fairly ubiquitous across different animal species as well as motor, perceptual, and cognitive tasks. As a result, understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{c3}. The tradeoff can be quantitatively modeled using Fitts’ law.. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown below \cite{c1}. Fitts law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed accuracy tradeoff.  
-
-\begin{equation}
-    MD = a + b \log_2 \left(\frac{2A}{W}\right) \label{eq:fitts_law}
-\end{equation}
-
- Historically, the speed accuracy tradeoff has been attributed to signal dependent motor noise, which is noise which has increasing variance depending on the strength of a neural control signal \cite{c2}. Noise in neural control will cause a change in the desired trajectory of a motion. These perturbations will eventually result in inaccuracies in the final movement. If noise was not a factor in the control of motion, then theoretically faster movements would result in less motor inaccuracy since there would be less time for noise to make an impact on the motion. In fact, the opposite is true as shown by Fitts’ law. The conclusion therefore is that higher speeds result in larger noise signals in motor control, resulting in larger movement variability.
-
- However, a new development proposes that a biomechanically realistic computational model can demonstrate the speed accuracy tradeoff without incorporating motor noise \cite{c5}. The findings propose that the speed accuracy tradeoff is caused by tighter constraints in trajectory optimization for an accurate problem which reduces the number of fast solutions for the problem. As a result, motor planning variability is the root cause of the speed accuracy tradeoff and not the motor noise as previously proposed. In order to reach this conclusion, the researchers employed a three dimensional, five degree-of-freedom model of the arm utilizing 47 muscles to produce realistic motions. Then, they utilized minimization of a cost function to model point to point movements in order to synthesize movement. They found that the motor variability can be explained using optimal control theory. Essentially, when a movement is being planned, if there is a large target there are many potential optimal paths which are found using the stochastic optimizer. Since there are more potential solutions to the movement problem, there will be many “good” solutions. However, if the search space is decreased by increasing the required accuracy needed for the movement, there will be fewer “good” options, and a less efficient option is more likely to be found when compared to a movement with lower required accuracy. Their hypothesis about motor planning was further reinforced using a study of the motor cortex of a Rhesus monkey by correlating data for the preparatory neural state variability for accurate and inaccurate tasks to the movement variability. This further emphasizes that motor planning variability results in variability in the executed motion, and indicates some kind of optimal control is involved in motor planning.
-
-A key emphasis of the researchers is the further room for improvement on their model. Signal dependent noise and motor planning optimization are likely both contributors to the speed accuracy tradeoff as they both are able to correlate to Fitts’ law, so a model which combines both would be an improvement over either model on its own. Additionally, improvement on the optimizer used would also have potential to increase the accuracy of the model \cite{c4}.
-
-The methods humans and animals use to optimize their motions is of great interest beyond just better modeling the reaching of a human arm. Humans are capable of performing and optimizing very complex tasks, which is a capability which is highly desirable in robotics \cite{c6}. Better understanding the speed accuracy tradeoff and the methods which are used to reduce redundancy in motion will help further the abilities of robots to perform difficult and complex tasks.
-
-\section{Problem Description}
+\section{Current Problem Description}
 We aim to answer the following questions: 
 \begin{itemize}
     \item When using trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question studied in \cite{c5})
@@ -71,7 +53,7 @@ We aim to answer the following questions:
 
     \item How does the use of different trajectory optimization methods affect this comparison?
 \end{itemize}
-For each of these questions, we will use the following metrics to compare the simulated behavior to human behavior:
+For each of these questions, we will use the following metrics to compare the simulated behavior (collected from our model) to human behavior (experimental data collected and used in \cite{c5}):
 \begin{itemize}
     \item Similarity of hand velocity profile during center-out fast reaching movements, evaluated qualitatively by appearance and quantitatively by time and value of maximum velocity:
     \begin{align}
@@ -86,7 +68,7 @@ For each of these questions, we will use the following metrics to compare the si
         - \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{\text{large}}(t)\right| - \arg\max_{t \in [0, T_f]} \left|V_{\text{exp}}^{\text{small}}(t)\right|\right)
     \end{multline*}
     Where $V_{\text{sim}}^{\text{large}}$ and $V_{\text{sim}}^{\text{small}}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively. $V_{\text{exp}}^{\text{large}}$ and $V_{\text{exp}}^{\text{small}}$ are defined similarly.
-    \item Fitts' Law model parameters $a$ and $b$ (from Eq. \ref{eq:fitts_law}). 
+    \item Fitts' Law model parameters $a$ and $b$.
     Several reaching tasks with fixed target distance and variable target width will be simulated. A least squares regression will then be used on movement duration $MD$ and target width $W$ data for each trial in order to fit the parameters:
     \begin{align}
         \begin{bmatrix}
@@ -96,25 +78,17 @@ For each of these questions, we will use the following metrics to compare the si
     Where $MD_i$ and $W_i$ are the movement duration and target width, respectively, for the $i$th trial, and $N$ is the number of trials.
 \end{itemize}
 
-We will formulate our signal-dependent motor noise (roughly) as additive gaussian noise proportional to the control input for each actuator:
-\begin{align}
-    \tilde{u}_i(t) = u_i(t) + u_i(t) \cdot w_i(t), \quad w_i(t) \sim \mathcal{N}(0, \sigma_i^2)
-\end{align}
-This formulation is subject to change based on further literature review.
+\subsection{System Model and Dynamics}
+Our human arm system is modeled as a 2 degree of freedom planar arm with shoulder and elbow joints, actuated by 6 Hill-type muscles. This model has been adapted from the model used in \cite{c7}, and a diagram of the model can be found in figure \ref{fig:arm_model}. 
 
-While we intend to experiment with different trajectory optimization methods, they will all roughly fall into the following general optimization problem:
-\begin{align}
-    \arg\min_{\mathbf{u}(t)} &\quad G\left(\mathbf{x}(t_f), t_f\right) + \int_0^{t_f} E(\mathbf{x}(t), \mathbf{u}(t)) dt \\
-    \text{subject to} &\quad \dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \quad \mathbf{x}(0) = \mathbf{x}_0 \\
-    &\quad C(\mathbf{x}(t_f)) \leq \mathbf{0}
-\end{align}
-Where $\mathbf{x}(t)$ is the state of the system at time $t$, $\mathbf{u}(t)$ is the control input at time $t$, $G$ is some cost function associated with the final state and time, $E$ is some cost function representing the energy cost of a given state and control input, $f$ is the dynamics of the system, $\mathbf{x}_0$ is the initial state of the system, and $C$ is some constraint function associated with the final state.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{arm_model_diagram.png}
+    \caption{Diagram of the musculoskeletal model of the human arm used in this project \cite{c7}.}
+    \label{fig:arm_model}
+\end{figure}
 
-Different methods may use different cost functions and constraints, and several different methods for solving the optimization problem will be used. Some of these may include: constrained single shooting, multiple shooting, and direct collocation. It should also be mentioned that the above dynamics and optimization problem will be discretized for numerical computation.
-
-\subsection{System Model and Stochastic Dynamics}
-Our human arm system is modeled as a 2 degree of freedom planar arm with shoulder and elbow joints, actuated by 6 Hill-type muscles. This model has been adapted from the model used in TODO. The state and control input vectors are defined below:
-TODO: add figure
+The state and control input vectors are defined below:
 \begin{align}
     \mathbf{x} &= \begin{bmatrix}
         \mathbf{q} &
@@ -141,38 +115,98 @@ Where $\theta_s$ and $\theta_e$ are the shoulder and elbow joint angles, respect
     \tilde{\mathbf{u}} &= \mathbf{u} + \text{diag}(\mathbf{u}) \cdot \mathbf{w}
 \end{align}
 
-Where $M(\mathbf{q})$ is the mass matrix of the arm model, $C(\mathbf{q}, \dot{\mathbf{q}})$ is the term describing the Coriolis forces, and $T_M(\mathbf{u}, \mathbf{q})$ is the term describing the torques generated by the muscles. Further details on the dynamics of the system can be found in TODO.
+Where $M(\mathbf{q})$ is the mass matrix of the arm model, $C(\mathbf{q}, \dot{\mathbf{q}})$ is the term describing the Coriolis forces, and $T_M(\mathbf{u}, \mathbf{q})$ is the term describing the torques generated by the muscles. Further details on the dynamics of the system can be found in \cite{c7}.
 
-\section{Planned Approach}
-\subsection{Timeline}
+Following the work of \cite{c7}, we approximate the stochastic state trajectories of the system as normally distributed trajectories. This allows us to represent the stochastic state trajectory as a mean trajectory $\mathbf{x}_\mu(t)$ and a covariance trajectory $P(t)$. We can then use this representation to create a deterministic approximation of the dynamics: 
+
+\begin{align*}
+    \dot{\mathbf{x}}_\mu(t) &= f(\mathbf{x}_\mu(t), \mathbf{u}(t), 0) \\
+    \dot{P}(t) &= A(t)P(t) + P(t)A(t)^\top + C(t) \Sigma_w C(t)^\top \\
+    &\quad A(t) = \frac{\partial f}{\partial \mathbf{x}}\bigg|_{\mathbf{x}_\mu(t), \mathbf{u}(t), 0} \\
+    &\quad C(t) = \frac{\partial f}{\partial \mathbf{w}}\bigg|_{\mathbf{x}_\mu(t), \mathbf{u}(t), 0}
+\end{align*}
+
+\subsection{Trajectory Optimization}
+To plan the trajectory of the arm during a reaching task, we aimed to solve the following optimal control problem:
+\begin{align}
+    \arg\min_{\mathbf{u}(t)} &\quad \int_0^{t_f} \mathbf{u}(t)^\top R \mathbf{u}(t) dt + k_t \cdot t_f \label{eq:cost} \\
+    \text{subject to} &\quad \dot{\mathbf{x}}_\mu(t) = f(\mathbf{x}_\mu(t), \mathbf{u}(t), 0), \quad \mathbf{x}_\mu(0) = \mathbf{x}_0 \label{eq:dynamics_constraint} \\
+    &\quad \dot{P}(t) = A(t)P(t) + P(t)A(t)^\top + C(t) \Sigma_w C(t)^\top, \quad P(0) = P_0 \label{eq:dynamics_constraint_p} \\
+    &\quad \dot{\mathbf{x}}_\mu(0) = 0, \quad \dot{\mathbf{x}}_\mu(t_f) = 0 \label{eq:boundary_constraints} \\
+    &\quad F_k(\mathbf{x}_\mu(t_f)) = \mathbf{p}_{\text{target}} \label{eq:target_constraint} \\
+    &\quad [HP(t_f)H^\top]_{i,i} \leq \sigma_{\text{target}, i}^2, \quad H = \frac{\partial F_k}{\partial \mathbf{x}}\bigg|_{\mathbf{x}_\mu(t_f)}, \quad i = 1, \ldots, n \label{eq:target_variance_constraint}
+\end{align}
+
+Where $t_f$ is the duration of the trajectory, $R$ is a weight matrix for muscle activations, $k_t$ is a weight for duration, $\mathbf{x}_0$ is the initial state of the arm, $P_0$ is the initial state covariance, $F_k$ is the arm forward kinematics function, $\mathbf{p}_{\text{target}}$ is the position of the target, and $\sigma_{\text{target}, i}$ is the desired standard deviation of the final position of the $i$th dimension of the target.
+
+Equation \ref{eq:cost} works to minimize muscle activations and trajectory duration. Equations \ref{eq:dynamics_constraint} and \ref{eq:dynamics_constraint_p} enforce the dynamics of the system. Equation \ref{eq:boundary_constraints} enforces zero velocity and acceleration at the beginning and end of the trajectory, while equation \ref{eq:target_constraint} enforces the final mean position of the arm's end effector to be at the target. Finally, equation \ref{eq:target_variance_constraint} enforces the final position of the arm's end effector to be within a certain standard deviation of the target position. This standard deviation can be adjusted to model variation in target size in order to test the speed accuracy tradeoff.
+
+\section{Current approach and Results}
+
+\subsection{Existing Model Adaptation}
+We initially invested a significant amount of time into adapting the complex 47 muscle OpenSim model for use in our project. However, this model and its supporting trajectory optimization code was developed using a heavily outdated version of OpenSim that is no longer well supported. An attempt was made to transition the model and supporting code to the latest version of OpenSim by adapting to the latest API, but this proved extremely time consuming and difficult to debug due to the complexity of the OpenSim library. As a result, we decided to abandon this model in favor of a simpler model.
+
+\subsection{Modeling Signal Dependent Motor Noise}
+The decision to combine noise into a trajectory optimization model meant we needed to find more information on modeling signal dependent noise. This led to the frequently referenced model by Harris and Wolpert \cite{c2}. This model applied white noise to the neural command signal that activates muscles. The noise is increased proportionally to the control signal strength. In order to add noise into a trajectory optimization model, we began researching other potential models which combined both noise and trajectory optimization. This lead us to the model by Todorov and Li \cite{c8}, which uses an iterative LQG model for locally-optimal feedback control which incorporates control dependent noise. Todorov found the control dependent noise has a similar effect to an energy cost, and utilized a stochastic model of the human arm with six muscle actuators in their model. Their work was further iterated on by Van Wouwe et al. \cite{c7}, who determined that the iLQG model required assumptions and tuning which might not be physically realistic. They acknowledged that the hand tuned cost functions were a simplifaction that potentially sacrificed accuracy. As a result, the Van Wouwe model uses stochastic simulations for both feedforward and feedback control their nonlinear musculoskeletal model, which also uses six muscles. 
+
+We immediately recognized the potential usefulness of this model, as it was implemented in MATLAB and was freely available on github. As a result, when we decided to transition away from using the complex 47 muscle model, it was a clear choice to make. The model already included a framework for modeling reaching trajectories in the presence of both signal and motor noise, and although it was not geared towards analyzing the speed accuracy tradeoff it would not be overly difficult to adapt it for that purpose. We also considered using the model proposed by Peternel, et al. \cite{c9}, which also examined stochastic optimization in the presence of motor noise, while also focusing on the speed accuracy tradeoff. However, this model was not readily avaliable to download, so we decided against attempting to recreate it in favor of adapting the Van Wouwe model.
+
+\subsection{Trajectory Optimization using Direct Colocation}
+Working with the Van Wouwe model, we adapted the optimal control framework from \cite{c7} to only perform feed forward control and to fit our trajectory optimization problem. This implementation required us to discretize the muscle activation trajectory into a vector of $N$ nodes, and to optimize over that vector. To enforce the dynamics efficiently, we use a method referred to as direct colocation. This involves similarly discretizing the state trajectory into a series of $N$ nodes that are added to the design vector, and then enforcing the dynamics constraints between each consecutive node. This formulation results in the following design vector:
+
+\begin{align}
+    \mathcal{X} &= \begin{bmatrix}
+        \mathbf{u}_1 & \cdots & \mathbf{u}_N & \mathbf{x}_{\mu1} & \cdots & \mathbf{x}_{\mu N} & P_1 \cdots & P_N & t_f
+    \end{bmatrix}^\top
+\end{align}
+
+Where $\mathbf{u}_i$, $\mathbf{x}_{\mu i}$, and $P_i$ are the muscle activations, state, and state covariance at the $i$th node, respectively. Then the discretized optimization problem can be formulated as follows:
+
+\begin{align}
+    \arg\min_{\mathbf{u}} &\quad \sum_{i=1}^{N} \mathbf{u}_i^\top R \mathbf{u}_i + k_t \cdot t_f \label{eq:dcost} \\
+    \text{subject to} &\quad \mathbf{x}_{\mu i+1} = \mathbf{x}_{\mu i} + f(\mathbf{x}_{\mu i}, \mathbf{u}_i, 0) \delta t, \ i = 1, \dots, N-1 \\
+    &\quad P_{i+1} = (I + A_i \delta t)P_i(I + A_i \delta t)^\top + C_i \Sigma_w C_i^\top \delta t, \ i = 1, \dots, N-1 \\
+    &\quad \mathbf{x}_{\mu 1} = \mathbf{x}_0, \quad f(\mathbf{x}_{\mu 0}, \mathbf{u}_0, 0) = 0, \quad f(\mathbf{x}_{\mu N}, \mathbf{u}_N, 0) = 0 \label{eq:dboundary_constraints} \\
+    &\quad F_k(\mathbf{x}_{\mu N}) = \mathbf{p}_{\text{target}} \label{eq:dtarget_constraint} \\
+    &\quad [HP_NH^\top]_{i,i} \leq \sigma_{\text{target}, i}^2, \quad H = \frac{\partial F_k}{\partial \mathbf{x}}\bigg|_{\mathbf{x}_{\mu N}}, \quad i = 1, \ldots, n \label{eq:dtarget_variance_constraint}
+\end{align}
+
+Note at the dynamics of the mean and covariance trajectories are enforced using simple forward Euler integration. We may experiment with different integration methods in the future to improve accuracy.
+
+\subsection{Demo Results}
+
+While we have not completed the implementation of our previously formulated trajectory optimization problem using the Van Wouwe model, we were able to adapt and implement a simplified version of the problem to plan a trajectory for a reaching task. A demo of this simulated trajectory can be found in figures \ref{fig:demo_activations}, \ref{fig:demo_joints}, and \ref{fig:demo_position}. In this demo, we only minimized muscle activations, opting for a fixed time duration of 0.8 seconds. The motor noise was simple Gaussian noise added to the joint torques, rather than signal dependent noise added to the muscle activations; this alternative noise formulation was used because it was already implemented in the model. Finally, a relatively large (and therefore lenient) target position covariance was used in the constraint function to allow for fast optimization trials while debugging. Now that we have the basic implementation working, we will begin adapting our code to address all of these problems.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{demo_new_state_activations.jpg}
+    \caption{Muscle activation trajectories for a reaching task using the Van Wouwe model.}
+    \label{fig:demo_activations}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{demo_new_state_joints.jpg}
+    \caption{Joint angle and velocity trajectories for a reaching task using the Van Wouwe model.}
+    \label{fig:demo_joints}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{demo_new_state_positions.jpg}
+    \caption{End Effector trajectory for reaching task using the Van Wouwe model. The end effector covariance grows large towards the end of the trajectory because it was very loosely constrained.}
+    \label{fig:demo_position}
+\end{figure}
+\section{Remaining Timeline}
 \begin{itemize}
-    \item \textbf{2/19} Riley: Setup OpenSim simulation software and development environment, evaluate feasibility of using original complex model by running simulation using code provided in the original paper.
 
-    Ethan: Review literature relating to signal-dependent motor noise, begin developing a formulation for introducing this noise to the model/simulation.
+    \item \textbf{3/25} Riley: Ensure the MATLAB model has been sufficiently adapted to model the speed accuracy tradeoff. The model should allow for input of target accuracy and output of movement duration. Begin implementing new trajectory optimization techniques into the model.
 
-    \item \textbf{2/26 (Spring Break)} Riley: Help with implementation of noise in simulation (dependent on completed mathematical formulation), begin literature review of trajectory optimization methods applicable to high dimensional arm models.
+    Ethan: Implement signal dependent motor noise generation into the MATLAB model. Begin to unsure output of noise models falls within anticipated variation ranges as described by \cite{c2}.
 
-    Ethan: Finish formulation of motor noise in simulation model, implement noise in simulation by modifying original C++ code.
+    \item \textbf{4/1} Riley: Continue testing and iterating on the trajectory optimization implementation, begin running trials and collecting data for metrics, begin planning and preparing background slides for final presentation
 
-    \item \textbf{3/4} Riley: Develop scripts to evaluate metrics on collected simulation data, test and iterate on the noise implementation (dependent on completed initial implementation).
-
-    Ethan: Collect experimental data from previous human reaching studies, run several trials of the simulation with and without noise (dependent on completed noise implementation).
-
-    \item \textbf{3/11 (Progress Report)} Riley: Prepare project progress report, began formulation and testing of different trajectory optimization methods in MATLAB.
-
-    Ethan: Prepare project progress report, continue running trials of the simulation with and without noise, begin analysis of collected data.
-
-    \item \textbf{3/18} Riley: Choose a trajectory optimization method and implement it in C++ for use in the simulation (dependent on completed formulation and testing in MATLAB), research and test different numerical optimizers available for C++.
-
-    Ethan: Complete analysis of collected motor noise data and comparison to experimental data, review trajectory optimization methods.
-
-    \item \textbf{3/25} Riley: Test and iterate on the trajectory optimization implementation (dependent on completed initial implementation).
-
-    Ethan: Choose a different trajectory optimization method and begin formulating and testing it in MATLAB.
-
-    \item \textbf{4/1} Riley: Continue testing and iterating on the trajectory optimization implementation, begin running trials and collecting data for metrics, begin preparing background slides for final presentation
-
-    Ethan: Implement and begin testing the chosen trajectory optimization method in C++. (dependent on completed formulation and testing in MATLAB), begin preparing background slides for final presentation.
+    Ethan: Continue to verify the model parameters for both trajectory optimization and noise addition are satisfactory (Dependent on completed formulation and testing in MATLAB), begin planning and preparing background slides for final presentation.
 
     \item \textbf{4/8} Riley: Continue running trials and collecting data for metrics, begin analysis of collected data, continue preparing slides for final presentation.
 
@@ -187,22 +221,24 @@ Where $M(\mathbf{q})$ is the mass matrix of the arm model, $C(\mathbf{q}, \dot{\
     Ethan: Finish final report.
 
 \end{itemize}
-\subsection{Anticipated Challenges}
-One of the main challenges we anticipate to complexity of the model we intend to use for simulation. This model is a high fidelity biologically accurate model of the human arm including 47 muscle-tendon actuators and 5 degrees of freedom. This complexity may cause our optimal control simulations to be prohibitively slow to run, and it may make it difficult to implement the signal-dependent motor noise. If we encounter these problems, we plan to instead use a simplified human arm model with fewer actuators. This may reduce our ability to accurately replicate human behavior, but it will allow us to complete the project in a reasonable amount of time.
+% \subsection{Anticipated Challenges}
+% One of the main challenges we anticipate to complexity of the model we intend to use for simulation. This model is a high fidelity biologically accurate model of the human arm including 47 muscle-tendon actuators and 5 degrees of freedom. This complexity may cause our optimal control simulations to be prohibitively slow to run, and it may make it difficult to implement the signal-dependent motor noise. If we encounter these problems, we plan to instead use a simplified human arm model with fewer actuators. This may reduce our ability to accurately replicate human behavior, but it will allow us to complete the project in a reasonable amount of time.
 
-Another challenge we anticipate is use of the OpenSim simulation software and C++ programming language. Neither of us have experience using OpenSim, so it is possible that there will be very significant learning curve to overcome, or even that it will lack features we need in order to complete the project. Although we both have experience using C++, we have never used it for optimal control. Because this use case often requires well developed libraries and optimization tools (e.g. fmincon in MATLAB) in order for rapid prototyping and testing to be feasible, we may encounter significant difficulty in implementing our optimal control simulations in C++ if these tools and libraries are not available. If we encounter these problems, we plan to use MATLAB instead of C++ for the optimal control simulations. MATLAB is known to have a well developed set of tools for use with trajectory optimization, and one of us has direct experience using it for that purpose. If this prevents us from using the original complex model, we will use a simplified model as described above.
+% Another challenge we anticipate is use of the OpenSim simulation software and C++ programming language. Neither of us have experience using OpenSim, so it is possible that there will be very significant learning curve to overcome, or even that it will lack features we need in order to complete the project. Although we both have experience using C++, we have never used it for optimal control. Because this use case often requires well developed libraries and optimization tools (e.g. fmincon in MATLAB) in order for rapid prototyping and testing to be feasible, we may encounter significant difficulty in implementing our optimal control simulations in C++ if these tools and libraries are not available. If we encounter these problems, we plan to use MATLAB instead of C++ for the optimal control simulations. MATLAB is known to have a well developed set of tools for use with trajectory optimization, and one of us has direct experience using it for that purpose. If this prevents us from using the original complex model, we will use a simplified model as described above.
+
+
 
 \section{Goals and Evaluation}
-As a baseline goal for this project, we aim to modify the simulation and control method from the original paper to include signal-dependent motor noise and produce a meaningful comparison between the these new simulated results and experimental data collected from previous studies. Specifically, we will consider this project successful if we are able to do the following:
+Our original baseline goal for this project was to modify the simulation and control method from the original paper to include signal-dependent motor noise and produce a meaningful comparison between the these new simulated results and experimental data collected from previous studies. As a result of the challenges encountered with utilizing this existing model, we have decided to change course slightly. Our goal now has shifted to now adapt the trajectory optimization model from Van Wouwe. Our final goals for the project remain the same for this model in relation to implementation of motor noise and additional trajectory optimization methods, but they will now be applied to a less complex model in the more familiar MATLAB environment. This will greatly improve the ease of use of the model and allow us to work more quickly towards our goals of implementing and modifying the model. Specifically, we will consider this project successful if we are able to do the following:
 \begin{itemize}
-    \item Incorporate motor noise into our simulation in a way that is, at least in some aspects, biologically realistic and backed up by previous literature.
-    \item Run this simulation and collect data from a sufficient number of trials (at least 10) for each reaching task described in the Problem Description section.
-    \item Analyze the collected data and compare it to experimental data from previous studies, using the metrics described in the Problem Description section.
+    \item Incorporate signal dependent motor noise into our simulation in a way that is, at least in some aspects, biologically realistic and backed up by previous literature. We will implement Gaussian noise proportional to the actuator command strength.
+    \item Run this simulation and collect data from a sufficient number of trials (at least 10) for each reaching task described in the Problem Description section. 
+    \item Analyze the collected data and compare it to experimental data from previous studies (Specifically from the paper Al Borno, et al for optimization comparison and Harris and Wolpert for noise comparison) and to correlate our results with Fitt's Law, using the metrics described in the Problem Description section. 
 \end{itemize}
 
-As a stretch goal, we aim to compare the results of the original trajectory optimization method used in the original paper to the results of one or more alternative trajectory optimization methods. Specifically, we will consider this goal successful if we are able to do the following:
+As an additional stretch goal, we aim to compare the results of the original trajectory optimization method used in the original paper to the results of an alternative trajectory optimization method. Specifically, we will consider this goal successful if we are able to do the following:
 \begin{itemize}
-    \item Choose one or more alternative trajectory optimization methods and implement them in our simulation.
+    \item Choose an alternative trajectory optimization method and implement it into our simulation.
     \item Run the simulation and collect data from a sufficient number of trials (at least 10) for each reaching task described in the Problem Description section using the alternative trajectory optimization method(s).
     \item Analyze the collected data and compare it to the original trajectory optimization method using the metrics described in the Problem Description section.
 \end{itemize}
@@ -226,204 +262,18 @@ https://doi.org/eLife 9:e57021
 
 \bibitem{c6}
 Trivedi U, Menychtas D, Alqasemi R, Dubey R. Biomimetic Approaches for Human Arm Motion Generation: Literature Review and Future Directions. Sensors (Basel). 2023 Apr 12;23(8):3912. doi: 10.3390/s23083912.
+
+\bibitem{c7}
+Van Wouwe T, Ting LH, De Groote F (2022) An approximate stochastic optimal control framework to simulate nonlinear neuro-musculoskeletal models in the presence of noise. PLOS Computational Biology 18(6): e1009338. https://doi.org/10.1371/journal.pcbi.1009338
+
+\bibitem{c8}
+E. Todorov and Weiwei Li, "A generalized iterative LQG method for locally-optimal feedback control of constrained nonlinear stochastic systems," Proceedings of the 2005, American Control Conference, 2005., Portland, OR, USA, 2005, pp. 300-306 vol. 1, doi: 10.1109/ACC.2005.1469949.
+
+\bibitem{c9}
+Peternel L, Sigaud O and Babič J (2017) Unifying Speed-Accuracy Trade-Off and Cost-Benefit Trade-Off in Human Reaching Movements. Front. Hum. Neurosci. 11:615. doi: 10.3389/fnhum.2017.00615
+
+
+
 \end{thebibliography}
 \end{document}
-\documentclass[table,12pt]{article}
-\usepackage[margin=1in]{geometry}
-\usepackage{graphicx, float, amsmath, amssymb, multicol}
 
-\title{\textbf{EECS 599 Project Proposal:} \\
-    Comparison of Human and Simulated Reaching Movements Using Trajectory Optimization with Signal-Dependent Motor Noise}
-
-\author{Riley Bridges and Ethan Parham \\\\
-    Sensory Synapse Squad}
-\date{February 2024}
-
-\begin{document}
-
-\maketitle
-\newpage
-
-\section{Team Charter}
-\subsection{Biographies}
-\begin{itemize}
-    \item \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.3\textwidth]{riley_picture.jpg}
-    \end{figure}
-    \textbf{Riley Bridges:} I am a masters student at the University of Michigan studying Electrical and Computer Engineering. My main background and interest is in computer science and robotics. I love most activities involving nature, especially hiking, cycling, running, and exploration.
-
-    \item \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.3\textwidth]{ethan_picture.png}
-    \end{figure}
-    \textbf{Ethan Parham:} I am a graduate student at the University of Michigan studying Mechanical Engineering, concentrating on design and controls. I have a Bachelor's degree in Mechanical Engineering, with a minor in Computer Science. After I graduate, my dream role would be on a team developing prosthetics, but I also am interested in the automotive industry and environmental sustainability. One of my favorite hobbies is music, and I am heavily involved with the athletic bands at Michigan. I play trumpet in the Michigan Marching band and Hockey Band, in addition to the trumpet ensemble. 
-\end{itemize}
-
-\subsection{Vision Statement}
-The members of the team aim to be able to apply controls techniques we learned in our undergraduate classes to the field of sensorimotor control. We want to be able to adapt and understand the work of other researchers, while also being able to enhance their models and control systems with our own meaningful contributions. By the end of the project, we should have a better understanding of control systems and the biological elements which relate to them, and be able to work more efficiently in a multidisciplinary field. As a result, we will be able to apply our skills to future projects even if they do not directly related to biological control.
-
-\subsection{Responsibilities}
-Each team member is expected to do an equal share of the work over the course of the project. Work will be divided according to the strengths of the team members, but the expectation is that each team member will have a good understanding of all aspects of the project and will be able to provide input to the other team members as needed. All team members should do their best to meet internal deadlines to the best of their ability. If they are unable to do so, they should notify other team members as quickly as possible so alternative plans can be made. 
-
-\subsection{Communication Plan}
-The team will communicate primarily over text when outside of meetings or class. Communication should be frequent, as it is important for all team members to be on the same page about their progress and any questions or concerns they may have. Any questions or concerns should be addressed as soon as possible, in order to maximize the working efficiency of all team members.
-
-\subsection{Conflict Resolution}
-Conflicts about content or procedure will be resolved through discussion within the group. If no resolution can be found, or the issue is more serious, then the group will propose issue to the professor for feedback or advice from a third party since as the group is a partnership no majority vote can be made. Hopefully, this feedback will allow the team to resolve their conflict.
-
-
-\subsection{Meeting Plan}
-The team will at minimum meet from 3-4 on Fridays on zoom. Additional or longer meetings can be scheduled as necessary. An alternative weekly meeting time is from 12-1 on Thursdays. The primary goal of the weekly meetings will be to ensure all team members are on the same page, and to set goals to be accomplished prior to the next meeting. If a team member is unable to attend the meeting, they should let the team know as soon as possible in order to reschedule to the meeting or to learn the contents of the meeting if no meeting can be made possible.
-
-\section{Introduction and Motivation}
-
-The speed-accuracy tradeoff is a phenomena in motor neuroscience which describes the relationship between the speed of the motion and the accuracy required of the task being performed. The tradeoff is fairly ubiquitous across different animal species as well as motor, perceptual, and cognitive tasks. As a result, understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{c3}. The tradeoff can be quantitatively modeled using Fitts’ law.. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown below \cite{c1}. Fitts law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed accuracy tradeoff.  
-
-\begin{equation}
-    MD = a + b \log_2 \left(\frac{2A}{W}\right) \label{eq:fitts_law}
-\end{equation}
-
- Historically, the speed accuracy tradeoff has been attributed to signal dependent motor noise, which is noise which has increasing variance depending on the strength of a neural control signal \cite{c2}. Noise in neural control will cause a change in the desired trajectory of a motion. These perturbations will eventually result in inaccuracies in the final movement. If noise was not a factor in the control of motion, then theoretically faster movements would result in less motor inaccuracy since there would be less time for noise to make an impact on the motion. In fact, the opposite is true as shown by Fitts’ law. The conclusion therefore is that higher speeds result in larger noise signals in motor control, resulting in larger movement variability.
-
- However, a new development proposes that a biomechanically realistic computational model can demonstrate the speed accuracy tradeoff without incorporating motor noise \cite{c5}. The findings propose that the speed accuracy tradeoff is caused by tighter constraints in trajectory optimization for an accurate problem which reduces the number of fast solutions for the problem. As a result, motor planning variability is the root cause of the speed accuracy tradeoff and not the motor noise as previously proposed. In order to reach this conclusion, the researchers employed a three dimensional, five degree-of-freedom model of the arm utilizing 47 muscles to produce realistic motions. Then, they utilized minimization of a cost function to model point to point movements in order to synthesize movement. They found that the motor variability can be explained using optimal control theory. Essentially, when a movement is being planned, if there is a large target there are many potential optimal paths which are found using the stochastic optimizer. Since there are more potential solutions to the movement problem, there will be many “good” solutions. However, if the search space is decreased by increasing the required accuracy needed for the movement, there will be fewer “good” options, and a less efficient option is more likely to be found when compared to a movement with lower required accuracy. Their hypothesis about motor planning was further reinforced using a study of the motor cortex of a Rhesus monkey by correlating data for the preparatory neural state variability for accurate and inaccurate tasks to the movement variability. This further emphasizes that motor planning variability results in variability in the executed motion, and indicates some kind of optimal control is involved in motor planning.
-
-A key emphasis of the researchers is the further room for improvement on their model. Signal dependent noise and motor planning optimization are likely both contributors to the speed accuracy tradeoff as they both are able to correlate to Fitts’ law, so a model which combines both would be an improvement over either model on its own. Additionally, improvement on the optimizer used would also have potential to increase the accuracy of the model \cite{c4}.
-
-The methods humans and animals use to optimize their motions is of great interest beyond just better modeling the reaching of a human arm. Humans are capable of performing and optimizing very complex tasks, which is a capability which is highly desirable in robotics \cite{c6}. Better understanding the speed accuracy tradeoff and the methods which are used to reduce redundancy in motion will help further the abilities of robots to perform difficult and complex tasks.
-
-\section{Problem Description}
-We aim to answer the following questions: 
-\begin{itemize}
-    \item When using trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question studied in \cite{c5})
-
-    \item How does the introduction of signal-dependent motor noise to the model affect this comparison?
-
-    \item How does the use of different trajectory optimization methods affect this comparison?
-\end{itemize}
-For each of these questions, we will use the following metrics to compare the simulated behavior to human behavior:
-\begin{itemize}
-    \item Similarity of hand velocity profile during center-out fast reaching movements, evaluated qualitatively by appearance and quantitatively by time and value of maximum velocity:
-    \begin{align}
-        \delta_{V_{\text{max}}} &= \max \left|V_{\text{sim}}(t)\right| - \max \left|V_{\text{exp}}(t)\right| \\
-        \delta_{T_{\text{max}}} &= \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}(t)\right| - \arg\max_{t \in [0, T_f]} \left|V_{\text{exp}}(t)\right|
-    \end{align}
-    Where $V_{\text{sim}}$ is the simulated velocity of the hand during its reaching trajectory, $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory, and $t_f$ is the time at which the hand reaches the target.
-
-    \item Delay in time of maximum velocity between large and small targets:
-    \begin{multline*}
-        \delta_{\text{delay}} = \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{\text{large}}(t)\right| - \arg\max_{t \in [0, T_f]} \left|V_{\text{sim}}^{\text{small}}(t)\right|\right) \\
-        - \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{\text{large}}(t)\right| - \arg\max_{t \in [0, T_f]} \left|V_{\text{exp}}^{\text{small}}(t)\right|\right)
-    \end{multline*}
-    Where $V_{\text{sim}}^{\text{large}}$ and $V_{\text{sim}}^{\text{small}}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively. $V_{\text{exp}}^{\text{large}}$ and $V_{\text{exp}}^{\text{small}}$ are defined similarly.
-    \item Fitts' Law model parameters $a$ and $b$ (from Eq. \ref{eq:fitts_law}). 
-    Several reaching tasks with fixed target distance and variable target width will be simulated. A least squares regression will then be used on movement duration $MD$ and target width $W$ data for each trial in order to fit the parameters:
-    \begin{align}
-        \begin{bmatrix}
-            a^* \\ b^*
-        \end{bmatrix} &= \arg\min_{a, b} \sum_{i=1}^N \left(MD_i - \left(a + b \log_2\left(\frac{2A}{W_i}\right)\right)\right)^2
-    \end{align}
-    Where $MD_i$ and $W_i$ are the movement duration and target width, respectively, for the $i$th trial, and $N$ is the number of trials.
-\end{itemize}
-
-We will formulate our signal-dependent motor noise (roughly) as additive gaussian noise proportional to the control input for each actuator:
-\begin{align}
-    \tilde{u}_i(t) = u_i(t) + u_i(t) \cdot w_i(t), \quad w_i(t) \sim \mathcal{N}(0, \sigma_i^2)
-\end{align}
-This formulation is subject to change based on further literature review.
-
-While we intend to experiment with different trajectory optimization methods, they will all roughly fall into the following general optimization problem:
-\begin{align}
-    \arg\min_{\mathbf{u}(t)} &\quad G\left(\mathbf{x}(t_f), t_f\right) + \int_0^{t_f} E(\mathbf{x}(t), \mathbf{u}(t)) dt \\
-    \text{subject to} &\quad \dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \quad \mathbf{x}(0) = \mathbf{x}_0 \\
-    &\quad C(\mathbf{x}(t_f)) \leq \mathbf{0}
-\end{align}
-Where $\mathbf{x}(t)$ is the state of the system at time $t$, $\mathbf{u}(t)$ is the control input at time $t$, $G$ is some cost function associated with the final state and time, $E$ is some cost function representing the energy cost of a given state and control input, $f$ is the dynamics of the system, $\mathbf{x}_0$ is the initial state of the system, and $C$ is some constraint function associated with the final state.
-
-Different methods may use different cost functions and constraints, and several different methods for solving the optimization problem will be used. Some of these may include: constrained single shooting, multiple shooting, and direct collocation. It should also be mentioned that the above dynamics and optimization problem will be discretized for numerical computation.
-
-\section{Planned Approach}
-\subsection{Timeline}
-\begin{itemize}
-    \item \textbf{2/19} Riley: Setup OpenSim simulation software and development environment, evaluate feasibility of using original complex model by running simulation using code provided in the original paper.
-
-    Ethan: Review literature relating to signal-dependent motor noise, begin developing a formulation for introducing this noise to the model/simulation.
-
-    \item \textbf{2/26 (Spring Break)} Riley: Help with implementation of noise in simulation (dependent on completed mathematical formulation), begin literature review of trajectory optimization methods applicable to high dimensional arm models.
-
-    Ethan: Finish formulation of motor noise in simulation model, implement noise in simulation by modifying original C++ code.
-
-    \item \textbf{3/4} Riley: Develop scripts to evaluate metrics on collected simulation data, test and iterate on the noise implementation (dependent on completed initial implementation).
-
-    Ethan: Collect experimental data from previous human reaching studies, run several trials of the simulation with and without noise (dependent on completed noise implementation).
-
-    \item \textbf{3/11 (Progress Report)} Riley: Prepare project progress report, began formulation and testing of different trajectory optimization methods in MATLAB.
-
-    Ethan: Prepare project progress report, continue running trials of the simulation with and without noise, begin analysis of collected data.
-
-    \item \textbf{3/18} Riley: Choose a trajectory optimization method and implement it in C++ for use in the simulation (dependent on completed formulation and testing in MATLAB), research and test different numerical optimizers available for C++.
-
-    Ethan: Complete analysis of collected motor noise data and comparison to experimental data, review trajectory optimization methods.
-
-    \item \textbf{3/25} Riley: Test and iterate on the trajectory optimization implementation (dependent on completed initial implementation).
-
-    Ethan: Choose a different trajectory optimization method and begin formulating and testing it in MATLAB.
-
-    \item \textbf{4/1} Riley: Continue testing and iterating on the trajectory optimization implementation, begin running trials and collecting data for metrics, begin preparing background slides for final presentation
-
-    Ethan: Implement and begin testing the chosen trajectory optimization method in C++. (dependent on completed formulation and testing in MATLAB), begin preparing background slides for final presentation.
-
-    \item \textbf{4/8} Riley: Continue running trials and collecting data for metrics, begin analysis of collected data, continue preparing slides for final presentation.
-
-    Ethan: Continue testing and iterating on the trajectory optimization implementation, begin running trials and collecting data for metrics, continue preparing slides for final presentation.
-
-    \item \textbf{4/15} Riley: Finish analysis of collected data, finish final presentation, begin final report.
-
-    Ethan: Finish running trials and collecting data for metrics, finish final presentation, begin final report.
-
-    \item \textbf{4/22 (Final Report)} Riley: Finish final report.
-
-    Ethan: Finish final report.
-
-\end{itemize}
-\subsection{Anticipated Challenges}
-One of the main challenges we anticipate to complexity of the model we intend to use for simulation. This model is a high fidelity biologically accurate model of the human arm including 47 muscle-tendon actuators and 5 degrees of freedom. This complexity may cause our optimal control simulations to be prohibitively slow to run, and it may make it difficult to implement the signal-dependent motor noise. If we encounter these problems, we plan to instead use a simplified human arm model with fewer actuators. This may reduce our ability to accurately replicate human behavior, but it will allow us to complete the project in a reasonable amount of time.
-
-Another challenge we anticipate is use of the OpenSim simulation software and C++ programming language. Neither of us have experience using OpenSim, so it is possible that there will be very significant learning curve to overcome, or even that it will lack features we need in order to complete the project. Although we both have experience using C++, we have never used it for optimal control. Because this use case often requires well developed libraries and optimization tools (e.g. fmincon in MATLAB) in order for rapid prototyping and testing to be feasible, we may encounter significant difficulty in implementing our optimal control simulations in C++ if these tools and libraries are not available. If we encounter these problems, we plan to use MATLAB instead of C++ for the optimal control simulations. MATLAB is known to have a well developed set of tools for use with trajectory optimization, and one of us has direct experience using it for that purpose. If this prevents us from using the original complex model, we will use a simplified model as described above.
-
-\section{Goals and Evaluation}
-As a baseline goal for this project, we aim to modify the simulation and control method from the original paper to include signal-dependent motor noise and produce a meaningful comparison between the these new simulated results and experimental data collected from previous studies. Specifically, we will consider this project successful if we are able to do the following:
-\begin{itemize}
-    \item Incorporate motor noise into our simulation in a way that is, at least in some aspects, biologically realistic and backed up by previous literature.
-    \item Run this simulation and collect data from a sufficient number of trials (at least 10) for each reaching task described in the Problem Description section.
-    \item Analyze the collected data and compare it to experimental data from previous studies, using the metrics described in the Problem Description section.
-\end{itemize}
-
-As a stretch goal, we aim to compare the results of the original trajectory optimization method used in the original paper to the results of one or more alternative trajectory optimization methods. Specifically, we will consider this goal successful if we are able to do the following:
-\begin{itemize}
-    \item Choose one or more alternative trajectory optimization methods and implement them in our simulation.
-    \item Run the simulation and collect data from a sufficient number of trials (at least 10) for each reaching task described in the Problem Description section using the alternative trajectory optimization method(s).
-    \item Analyze the collected data and compare it to the original trajectory optimization method using the metrics described in the Problem Description section.
-\end{itemize}
-
-\begin{thebibliography}{99}
-\bibitem{c1}
-Fitts PM (1954) The information capacity of the human motor system in controlling the amplitude of movement Journal of Experimental Psychology 47:381–391. https://doi.org/10.1037/h0055392 
-
-\bibitem{c2}
-Harris, C., Wolpert, D. Signal-dependent noise determines motor planning. Nature 394, 780–784 (1998). https://doi.org/10.1038/29528
-
-\bibitem{c3}
-Heitz RP (2014) The speed-accuracy tradeoff: history, physiology, methodology, and behavior Frontiers in Neuroscience 8:150. https://doi.org/10.3389/fnins.2014.00150
-
-\bibitem{c4}
-Lillicrap TP, Hunt JJ, Pritzel A, Heess N, Erez T, Tassa Y, Silver D, Wierstra D (2015) Continuous control with deep reinforcement learning arXiv. https://arxiv.org/abs/1509.02971
-
-\bibitem{c5}
-Mazen Al Borno, Saurabh Vyas, Krishna V Shenoy, Scott L Delp (2020) High-fidelity musculoskeletal modeling reveals that motor planning variability contributes to the speed-accuracy tradeoff 
-https://doi.org/eLife 9:e57021
-
-\bibitem{c6}
-Trivedi U, Menychtas D, Alqasemi R, Dubey R. Biomimetic Approaches for Human Arm Motion Generation: Literature Review and Future Directions. Sensors (Basel). 2023 Apr 12;23(8):3912. doi: 10.3390/s23083912.
-\end{thebibliography}
-\end{document}

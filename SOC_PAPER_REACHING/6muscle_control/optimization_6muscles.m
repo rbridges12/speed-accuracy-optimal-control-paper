@@ -87,6 +87,7 @@ function result = optimization_6muscles(forceField,wM_std)
     opti.subject_to(X(3:4,end) == [0; 0]);
 
     % Final acceleration equals zero (activations balanced)
+    % TODO: we can get rid of the above constraint by subjecting the entire dX_end to zero
     dX_end = functions.f_forwardMusculoskeletalDynamics(X(:,end),u(:,end),0);
     opti.subject_to(dX_end(3:4) == 0);
 
