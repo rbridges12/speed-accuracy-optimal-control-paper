@@ -1,4 +1,4 @@
-function h=error_ellipse(varargin)
+function h=error_ellipse(C, mu, conf, style)
 % ERROR_ELLIPSE - plot an error ellipse, or ellipsoid, defining confidence region
 %    ERROR_ELLIPSE(C22) - Given a 2x2 covariance matrix, plot the
 %    associated error ellipse, at the origin. It returns a graphics handle
@@ -25,42 +25,42 @@ function h=error_ellipse(varargin)
 %        outside the radius will not be shown.
 %
 %    NOTES: C must be positive definite for this function to work properly.
-default_properties = struct(...
-  'C', [], ... % The covaraince matrix (required)
-  'mu', [], ... % Center of ellipse (optional)
-  'conf', 0.5, ... % Percent confidence/100
-  'scale', 1, ... % Scale factor, e.g. 1e-3 to plot m as km
-  'style', '', ...  % Plot style
-  'clip', inf); % Clipping radius
-if length(varargin) >= 1 & isnumeric(varargin{1})
-  default_properties.C = varargin{1};
-  varargin(1) = [];
-end
-if length(varargin) >= 1 & isnumeric(varargin{1})
-  default_properties.mu = varargin{1};
-  varargin(1) = [];
-end
-if length(varargin) >= 1 & isnumeric(varargin{1})
-  default_properties.conf = varargin{1};
-  varargin(1) = [];
-end
-if length(varargin) >= 1 & isnumeric(varargin{1})
-  default_properties.scale = varargin{1};
-  varargin(1) = [];
-end
-if length(varargin) >= 1 & ~ischar(varargin{1})
-  error('Invalid parameter/value pair arguments.') 
-end
-prop = getopt(default_properties, varargin{:});
-C = prop.C;
-if isempty(prop.mu)
-  mu = zeros(length(C),1);
-else
-  mu = prop.mu;
-end
-conf = prop.conf;
-scale = prop.scale;
-style = prop.style;
+% default_properties = struct(...
+%   'C', [], ... % The covaraince matrix (required)
+%   'mu', [], ... % Center of ellipse (optional)
+%   'conf', 0.5, ... % Percent confidence/100
+%   'scale', 1, ... % Scale factor, e.g. 1e-3 to plot m as km
+%   'style', '', ...  % Plot style
+%   'clip', inf); % Clipping radius
+% if length(varargin) >= 1 & isnumeric(varargin{1})
+%   default_properties.C = varargin{1};
+%   varargin(1) = [];
+% end
+% if length(varargin) >= 1 & isnumeric(varargin{1})
+%   default_properties.mu = varargin{1};
+%   varargin(1) = [];
+% end
+% if length(varargin) >= 1 & isnumeric(varargin{1})
+%   default_properties.conf = varargin{1};
+%   varargin(1) = [];
+% end
+% if length(varargin) >= 1 & isnumeric(varargin{1})
+%   default_properties.scale = varargin{1};
+%   varargin(1) = [];
+% end
+% if length(varargin) >= 1 & ~ischar(varargin{1})
+%   error('Invalid parameter/value pair arguments.') 
+% end
+% prop = getopt(default_properties, varargin{:});
+% C = prop.C;
+% if isempty(prop.mu)
+%   mu = zeros(length(C),1);
+% else
+%   mu = prop.mu;
+% end
+% conf = prop.conf;
+scale = 1;
+clip = inf;
 if conf <= 0 | conf >= 1
   error('conf parameter must be in range 0 to 1, exclusive')
 end
@@ -86,12 +86,12 @@ if r==3 & c==3
   Cxy = C(1:2,1:2);
   Cyz = C(2:3,2:3);
   Czx = C([3 1],[3 1]);
-  [x,y,z] = getpoints(Cxy,prop.clip);
-  h1=plot3(x0+k*x,y0+k*y,z0+k*z,prop.style);hold on
-  [y,z,x] = getpoints(Cyz,prop.clip);
-  h2=plot3(x0+k*x,y0+k*y,z0+k*z,prop.style);hold on
-  [z,x,y] = getpoints(Czx,prop.clip);
-  h3=plot3(x0+k*x,y0+k*y,z0+k*z,prop.style);hold on
+  [x,y,z] = getpoints(Cxy,clip);
+  h1=plot3(x0+k*x,y0+k*y,z0+k*z,style);hold on
+  [y,z,x] = getpoints(Cyz,clip);
+  h2=plot3(x0+k*x,y0+k*y,z0+k*z,style);hold on
+  [z,x,y] = getpoints(Czx,clip);
+  h3=plot3(x0+k*x,y0+k*y,z0+k*z,style);hold on
   
   [eigvec,eigval] = eig(C);
   [X,Y,Z] = ellipsoid(0,0,0,1,1,1);
@@ -112,8 +112,8 @@ elseif r==2 & c==2
   if any(eig(C) <=0)
     error('The covariance matrix must be positive definite (it has non-positive eigenvalues)')
   end
-  [x,y,z] = getpoints(C,prop.clip);
-  h1=plot(scale*(x0+k*x),scale*(y0+k*y),prop.style,'Color',[0 0 0]);
+  [x,y,z] = getpoints(C,clip);
+  h1=plot(scale*(x0+k*x),scale*(y0+k*y), style, 'LineWidth', 2);
 %   set(h1,'zdata',z+1)
   if nargout
     h=h1;

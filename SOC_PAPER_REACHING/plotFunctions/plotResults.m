@@ -100,7 +100,7 @@ subplot(1,3,3)
 plot(result.EEPos(:,1),result.EEPos(:,2),'LineWidth',2); hold on;
 for i = 1:10:length(result.time)
 Cov = [result.P_EEPos(1,i) result.P_EEPos(2,i); result.P_EEPos(2,i) result.P_EEPos(3,i)];
-error_ellipse(Cov,[result.EEPos(i,1);result.EEPos(i,2)],0.95);
+error_ellipse(Cov,[result.EEPos(i,1);result.EEPos(i,2)],0.95, "k:");
 end
 title('2D Trajectory')
 ylim([0 1]);
