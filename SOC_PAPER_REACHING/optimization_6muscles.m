@@ -1,4 +1,4 @@
-function result = optimization_6muscles(forceField,wM_std)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
 
     import casadi.*
 
@@ -6,17 +6,16 @@ function result = optimization_6muscles(forceField,wM_std)
     auxdata = initializeModelParameters();
 
     % Additional simulation settings
-    T = auxdata.T;
-    dt = 0.01; auxdata.dt = dt; % time step
-    N = round(T/dt); auxdata.N = N; % number of discretized nodes
+    T = 0.8;
+    auxdata.N = N; % number of discretized nodes
+    dt = T/N; auxdata.dt = dt; % time step
     time = 0:dt:T; auxdata.time = time;
     nStates = 4; auxdata.nStates = nStates; % [q1, q2, qdot1, qdot2]
+    nControls = auxdata.nMuscles;
     wM = (wM_std*ones(2,1)).^2/dt; auxdata.wM = wM; % Motor noise: go from std of continuous noise source to variance of discrete sample
 
     sigma_w = diag(wM);
     auxdata.sigma_w = sigma_w;
-
-    auxdata.forceField = forceField;
 
     %%%% Define CasADi functions - for reasons of efficiency and to compute sensitivities (jacobians) of functions
     functions = generateFunctions(auxdata);
@@ -26,24 +25,24 @@ function result = optimization_6muscles(forceField,wM_std)
     % given shoulder angles, solve for initial and final elbow angles such
     % that the EE x position is 1 at the start and finish
     fsolve_options = optimoptions('fsolve','FiniteDifferenceType','central','StepTolerance',1e-10,'OptimalityTolerance',1e-10);
-    shoulder_pos_init = 20*pi/180;
-    shoulder_pos_final = 55*pi/180;
-    f = @(x)get_px(x,auxdata,shoulder_pos_init);
-    elbow_pos_init = fsolve(f,ones,fsolve_options);
-    initial_pos = [shoulder_pos_init; elbow_pos_init];
+    q1_init = 20*pi/180;
+    q1_final = 55*pi/180;
+    f = @(x)get_px(x, auxdata, q1_init);
+    q2_init = fsolve(f, ones, fsolve_options);
+    q_init = [q1_init; q2_init];
 
-    f = @(x)get_px(x,auxdata,shoulder_pos_final);
-    elbow_pos_final = fsolve(f,ones,fsolve_options);
-    final_pos = [shoulder_pos_final; elbow_pos_final];
-    EE_final = EndEffectorPos(final_pos,auxdata);
+    f = @(x)get_px(x, auxdata, q1_final);
+    q2_final = fsolve(f, ones, fsolve_options);
+    q_final = [q1_final; q2_final];
+    EE_final = EndEffectorPos(q_final, auxdata);
 
     % create optimization variables and provide initial guesses
     X_guess = zeros(nStates,N+1);
-    X_guess(1,:) = interp1([0 T], [initial_pos(1) final_pos(1)],time);
-    X_guess(2,:) = interp1([0 T], [initial_pos(2) final_pos(2)],time);
+    X_guess(1,:) = interp1([0 T], [q_init(1) q_final(1)],time);
+    X_guess(2,:) = interp1([0 T], [q_init(2) q_final(2)],time);
     X = opti.variable(nStates,N+1);
     opti.set_initial(X, X_guess);
-    u = opti.variable(6,N+1);
+    u = opti.variable(nControls, N+1);
     opti.set_initial(u, 0.01);
     M = opti.variable(nStates,nStates*N);
     opti.set_initial(M, 0.01);
@@ -78,8 +77,8 @@ function result = optimization_6muscles(forceField,wM_std)
     end
 
     % constrain initial and final conditions
-    opti.subject_to(X(:,1) - [initial_pos; 0; 0] == 0);
-    dX_init = functions.f_forwardMusculoskeletalDynamics(X(:,1),u(:,1),0);
+    opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
+    dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
     opti.subject_to(dX_init([3:4]) == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
 
     % Reaching motion must end in the final reach position with zero angular joint velocity
@@ -97,20 +96,17 @@ function result = optimization_6muscles(forceField,wM_std)
     P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
     P_q_qdot_final = Pmat_i;
     P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
-    pos_dev = 0.008^2;
-    vel_dev = 0.05^2;
-    opti.subject_to(P_EEPos_final(1,1) < pos_dev);
-    opti.subject_to(P_EEPos_final(2,2) < pos_dev);
-    opti.subject_to(P_EEVel_final(1,1) < vel_dev);
-    opti.subject_to(P_EEVel_final(2,2) < vel_dev);
+    pos_variance = (pos_conf_95/2)^2
+    vel_variance = (vel_conf_95/2)^2
+    opti.subject_to(P_EEPos_final(1,1) < pos_variance);
+    opti.subject_to(P_EEPos_final(2,2) < pos_variance);
+    opti.subject_to(P_EEVel_final(1,1) < vel_variance);
+    opti.subject_to(P_EEVel_final(2,2) < vel_variance);
 
     % constrain activations and joint angle limits
     opti.subject_to(0.001 < u(:) < 1);
     opti.subject_to(0 < X(1,:) < 180);
     opti.subject_to(0 < X(2,:) < 180);
-    % opti.subject_to((0.001 < u(:)) && (u(:) < 1));
-    % opti.subject_to((0 < X(1,:)) && (X(1,:) < 180));
-    % opti.subject_to((0 < X(2,:)) && (X(2,:) < 180));
 
     % minimize sum of squared activations
     opti.minimize(1e3*(sumsqr(u)/2)*dt);
@@ -121,7 +117,7 @@ function result = optimization_6muscles(forceField,wM_std)
     optionssol.ipopt.tol = 1e-3;
     optionssol.ipopt.dual_inf_tol = 3e-4;
     optionssol.ipopt.constr_viol_tol = 1e-7;
-    optionssol.ipopt.max_iter = 10000;
+    optionssol.ipopt.max_iter = 1000;
     optionssol.ipopt.hessian_approximation = 'limited-memory';
     opti.solver('ipopt',optionssol);
 

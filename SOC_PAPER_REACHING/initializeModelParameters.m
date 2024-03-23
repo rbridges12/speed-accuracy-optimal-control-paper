@@ -1,9 +1,9 @@
 function auxdata = initializeModelParameters()
-% Degrees of freedom
-auxdata.Ndof=2;
+auxdata.nDOF = 2;
+auxdata.nMuscles = 6;
+auxdata.nMotorNoises = 2;
 
-% Movement time
-T = 0.8; auxdata.T = T; % time horizon
+auxdata.forceField = 0;
 
 % Parameters of skeletal arm model
 auxdata.m1 = 1.4; auxdata.m2 = 1;
