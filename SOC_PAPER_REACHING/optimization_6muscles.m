@@ -97,7 +97,7 @@ function result = optimization_6muscles(forceField,wM_std)
     P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
     P_q_qdot_final = Pmat_i;
     P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
-    pos_dev = 0.04^2;
+    pos_dev = 0.01^2;
     vel_dev = 0.5^2;
     opti.subject_to(P_EEPos_final(1,1) < pos_dev);
     opti.subject_to(P_EEPos_final(2,2) < pos_dev);
