@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t)
 
     import casadi.*
 
@@ -6,16 +6,10 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     auxdata = initializeModelParameters();
 
     % Additional simulation settings
-    T = 0.8;
+    % T = 0.8;
     auxdata.N = N; % number of discretized nodes
-    dt = T/N; auxdata.dt = dt; % time step
-    time = 0:dt:T; auxdata.time = time;
     nStates = 4; auxdata.nStates = nStates; % [q1, q2, qdot1, qdot2]
     nControls = auxdata.nMuscles;
-    wM = (wM_std*ones(2,1)).^2/dt; auxdata.wM = wM; % Motor noise: go from std of continuous noise source to variance of discrete sample
-
-    sigma_w = diag(wM);
-    auxdata.sigma_w = sigma_w;
 
     %%%% Define CasADi functions - for reasons of efficiency and to compute sensitivities (jacobians) of functions
     functions = generateFunctions(auxdata);
@@ -37,9 +31,11 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     EE_final = EndEffectorPos(q_final, auxdata);
 
     % create optimization variables and provide initial guesses
+    T_guess = 0.8;
+    time_guess = 0:0.01:T_guess;
     X_guess = zeros(nStates,N+1);
-    X_guess(1,:) = interp1([0 T], [q_init(1) q_final(1)],time);
-    X_guess(2,:) = interp1([0 T], [q_init(2) q_final(2)],time);
+    X_guess(1,:) = interp1([0 T_guess], [q_init(1) q_final(1)],time_guess);
+    X_guess(2,:) = interp1([0 T_guess], [q_init(2) q_final(2)],time_guess);
     X = opti.variable(nStates,N+1);
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
@@ -47,6 +43,14 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     M = opti.variable(nStates,nStates*N);
     opti.set_initial(M, 0.01);
     Pmat_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
+    T = opti.variable(); % Duration
+    opti.set_initial(T, T_guess);
+
+    dt = T/N;
+    % time = 0:dt:T;
+    time = linspace(0,T,N+1);
+    wM = (wM_std*ones(2,1)).^2/dt; % Motor noise: go from std of continuous noise source to variance of discrete sample
+    sigma_w = diag(wM);
 
     Pmat_i = Pmat_init;
     for i = 1:N
@@ -58,7 +62,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
         % dynamics constraints using trapezoidal integration
         dX_i = functions.f_forwardMusculoskeletalDynamics(X_i, u_i, 0);
         dX_i_plus = functions.f_forwardMusculoskeletalDynamics(X_i_plus, u_i_plus, 0);
-        opti.subject_to(functions.f_G_Trapezoidal(X_i,X_i_plus,dX_i,dX_i_plus)*1e3 == 0);
+        opti.subject_to(functions.f_G_Trapezoidal(X_i,X_i_plus,dX_i,dX_i_plus, dt)*1e3 == 0);
         
         M_i = M(:,(i-1)*nStates + 1:i*nStates);
         
@@ -67,26 +71,27 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
         DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
         DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
         
-        DG_DX_i = functions.f_DG_DX(DdX_DX_i);
-        DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i);
-        DG_DW_i = functions.f_DG_DW(DdX_Dw_i, DdZ_Dw_i);
+        DG_DX_i = functions.f_DG_DX(DdX_DX_i, dt);
+        DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i, dt);
+        DG_DW_i = functions.f_DG_DW(DdX_Dw_i, DdZ_Dw_i, dt);
         
         opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
         
         Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i';
     end
 
+    % constrain time to be positive
+    opti.subject_to(T > 0);
+
     % constrain initial and final conditions
     opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
     dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
     opti.subject_to(dX_init([3:4]) == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
 
-    % Reaching motion must end in the final reach position with zero angular joint velocity
+    % Reaching motion must end in the final reach position
     opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_final == 0);
-    % opti.subject_to(X(3:4,end) == [0; 0]);
 
-    % Final acceleration equals zero (activations balanced)
-    % TODO: we can get rid of the above constraint by subjecting the entire dX_end to zero
+    % Final joint velocity and acceleration equals zero (activations balanced)
     dX_end = functions.f_forwardMusculoskeletalDynamics(X(:,end),u(:,end),0);
     opti.subject_to(dX_end == 0);
 
@@ -96,8 +101,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
     P_q_qdot_final = Pmat_i;
     P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
-    pos_variance = (pos_conf_95/2)^2
-    vel_variance = (vel_conf_95/2)^2
+    pos_variance = (pos_conf_95/2)^2;
+    vel_variance = (vel_conf_95/2)^2;
     opti.subject_to(P_EEPos_final(1,1) < pos_variance);
     opti.subject_to(P_EEPos_final(2,2) < pos_variance);
     opti.subject_to(P_EEVel_final(1,1) < vel_variance);
@@ -109,7 +114,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     opti.subject_to(0 < X(2,:) < 180);
 
     % minimize sum of squared activations
-    opti.minimize(1e3*(sumsqr(u)/2)*dt);
+    opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T);
 
     % Set solver options
     % optionssol.ipopt.nlp_scaling_method = 'gradient-based';
@@ -125,7 +130,13 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     u_sol = sol.value(u);
     X_sol = sol.value(X);
     X_init_sol = X_sol(:,1);
-    [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,u_sol,auxdata,functions);
+    T_sol = sol.value(T);
+    dt_sol = T_sol/N;
+    wM_sol = (wM_std*ones(2,1)).^2/dt_sol;
+    sigma_w_sol = diag(wM_sol);
+    auxdata.wM = wM_sol;
+    auxdata.sigma_w = sigma_w_sol;
+    [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,u_sol, T_sol,auxdata,functions);
 
     final_cost = sol.value(opti.f);
 
@@ -152,7 +163,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     result.qdot = X_sol(3:4,:)';
     result.M = sol.value(M);
     result.Pmat = Pmat_sol;
-    result.time = 0:dt:T;
+    result.time = 0:dt_sol:T_sol;
     result.auxdata = auxdata;
     result.EEPos = EEPos_sol;
     result.EEVel = EEVel_sol;

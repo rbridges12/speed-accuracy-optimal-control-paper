@@ -5,11 +5,12 @@ nDOF = auxdata.nDOF;
 nMuscles = auxdata.nMuscles;
 nMotorNoises = auxdata.nMotorNoises;
 nStates = auxdata.nStates;
-dt = auxdata.dt;
+% dt = auxdata.dt;
 
 % FORWARD DYNAMICS
 u_MX = MX.sym('u_MX',nMuscles); % Controls (muscle excitations)
 X_MX = MX.sym('X_MX',nStates); % States (joint kinematics)
+dt_MX = MX.sym('dt_MX',1); % Time step
 wM_MX = MX.sym('wM_MX',nMotorNoises); % Motor noise
 
 % unperturbed stochastic forward dynamics
@@ -31,18 +32,18 @@ functions.f_DdX_Dw = f_DdX_Dw;
 X_plus_MX = MX.sym('X_plus_MX',nStates); % States at mesh end
 dX_MX = MX.sym('dX_MX',nStates); % State derivative
 dX_plus_MX = MX.sym('dX_plus_MX',nStates); % State derivative at mesh end
-f_G_Trapezoidal = Function('f_G_Trapezoidal',{X_MX,X_plus_MX,dX_MX,dX_plus_MX},{G_Trapezoidal(X_MX,X_plus_MX,dX_MX,dX_plus_MX,dt)});
+f_G_Trapezoidal = Function('f_G_Trapezoidal',{X_MX,X_plus_MX,dX_MX,dX_plus_MX, dt_MX},{G_Trapezoidal(X_MX,X_plus_MX,dX_MX,dX_plus_MX,dt_MX)});
 functions.f_G_Trapezoidal = f_G_Trapezoidal;
 
 % Sensitivity of trapezoidal integration scheme to changes in initial state
 DdX_DX_MX = MX.sym('DdX_DX_MX',nStates,nStates); 
-DG_DX_MX = DG_DX_Trapezoidal(DdX_DX_MX,dt);
-f_DG_DX = Function('f_DG_DX',{DdX_DX_MX},{DG_DX_MX});
+DG_DX_MX = DG_DX_Trapezoidal(DdX_DX_MX,dt_MX);
+f_DG_DX = Function('f_DG_DX',{DdX_DX_MX, dt_MX},{DG_DX_MX});
 functions.f_DG_DX = f_DG_DX;
 
 % Sensitivity of trapezoidal integration scheme to changes in final state
-DG_DZ_MX = DG_DZ_Trapzoidal(DdX_DX_MX,dt);
-f_DG_DZ = Function('f_DG_DZ',{DdX_DX_MX},{DG_DZ_MX});
+DG_DZ_MX = DG_DZ_Trapzoidal(DdX_DX_MX,dt_MX);
+f_DG_DZ = Function('f_DG_DZ',{DdX_DX_MX, dt_MX},{DG_DZ_MX});
 functions.f_DG_DZ = f_DG_DZ;
 
 % % Sensitivity of trapezoidal integration scheme to changes in motor noise
@@ -53,8 +54,8 @@ functions.f_DG_DZ = f_DG_DZ;
 % Sensitivity of trapezoidal integration scheme to changes in motor noise
 DdX_Dw_MX = MX.sym('DdX_Dw_MX',nStates, nMotorNoises); 
 DdX_plus_Dw_MX= MX.sym('DdX_plus_Dw_MX',nStates, nMotorNoises); 
-DG_DW_MX = DG_DW_Trapezoidal(DdX_Dw_MX, DdX_plus_Dw_MX, dt);
-f_DG_DW = Function('f_DG_DW',{DdX_Dw_MX, DdX_plus_Dw_MX},{DG_DW_MX});
+DG_DW_MX = DG_DW_Trapezoidal(DdX_Dw_MX, DdX_plus_Dw_MX, dt_MX);
+f_DG_DW = Function('f_DG_DW',{DdX_Dw_MX, DdX_plus_Dw_MX, dt_MX},{DG_DW_MX});
 functions.f_DG_DW = f_DG_DW;
 
 % Some other useful function definitions
