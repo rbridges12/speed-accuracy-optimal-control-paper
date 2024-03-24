@@ -18,6 +18,10 @@ final_vel_variance_95 = 1; % 95% confidence interval for final velocity
 
 result = optimization_6muscles(N, wM_std, final_pos_variance_95, final_vel_variance_95);
 
+result.final_cost
+result.final_pos_cov
+result.final_vel_cov
+
 %%
 animate_trajectory(result);
 

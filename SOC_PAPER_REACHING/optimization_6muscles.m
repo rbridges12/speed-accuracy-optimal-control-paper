@@ -83,12 +83,12 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
 
     % Reaching motion must end in the final reach position with zero angular joint velocity
     opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_final == 0);
-    opti.subject_to(X(3:4,end) == [0; 0]);
+    % opti.subject_to(X(3:4,end) == [0; 0]);
 
     % Final acceleration equals zero (activations balanced)
     % TODO: we can get rid of the above constraint by subjecting the entire dX_end to zero
     dX_end = functions.f_forwardMusculoskeletalDynamics(X(:,end),u(:,end),0);
-    opti.subject_to(dX_end(3:4) == 0);
+    opti.subject_to(dX_end == 0);
 
     
     % Constrain end point position and velocity variance in x and y
@@ -127,6 +127,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     X_init_sol = X_sol(:,1);
     [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,u_sol,auxdata,functions);
 
+    final_cost = sol.value(opti.f);
+
     for i = 1:N+1
         Pmat_sol_i = Pmat_sol(:,:,i);
         P_q_sol_i = Pmat_sol_i(1:2, 1:2);
@@ -139,6 +141,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
 
     EEPos_sol = EndEffectorPos(X_sim(1:2,:),auxdata)';
     EEVel_sol = EndEffectorVel(X_sim(1:2,:),X_sim(3:4,:),auxdata)';
+
+    final_pos_cov = P_EEPos_sol(:,end);
+    final_vel_cov = P_EEVel_sol(:,end);
 
     clear result;
     result.e_ff = u_sol';
@@ -154,6 +159,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95)
     result.P_EEPos = P_EEPos_sol;
     result.P_EEVel = P_EEVel_sol;
     result.EE_ref = EE_ref_sol;
+    result.final_cost = final_cost;
+    result.final_pos_cov = final_pos_cov;
+    result.final_vel_cov = final_vel_cov;
 end
 
 

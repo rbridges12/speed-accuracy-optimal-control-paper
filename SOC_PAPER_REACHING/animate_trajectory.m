@@ -9,7 +9,7 @@ function animate_trajectory(result)
     l1 = result.auxdata.l1;
     l2 = result.auxdata.l2;
 
-    FPS = 300;
+    FPS = 200;
     t_anim = 0:1/FPS:ts(end);
 
     q_anim = [interp1(ts, q(:, 1), t_anim);
@@ -42,12 +42,10 @@ function animate_trajectory(result)
     for i = 1:numel(t_anim)
         cla
         hold on 
-        title("Planar Arm $t$ = " + num2str(t_anim(i), '%.2f') + " s", 'Interpreter', 'latex')
+        title("Arm Trajectory, final cost = " + num2str(result.final_cost, "%.2f") + ", t = " + num2str(t_anim(i), '%.2f') + " s")
 
         theta_shoulder_i = q_anim(1, i);
         theta_elbow_i = q_anim(2, i);
-        % link1 = [0 0; l1*cos(theta_shoulder_i) l1*sin(theta_shoulder_i)];
-        % link2 = [link1(2, :); link1(2, 1) + l2*cos(theta_shoulder_i + theta_elbow_i) link1(2, 2) + l2*sin(theta_shoulder_i + theta_elbow_i)];
 
         plot(EEpos_anim(1, 1:i), EEpos_anim(2, 1:i), 'k-', 'LineWidth', 2)
         error_ellipse(pos_cov_anim(:, :, i), EEpos_anim(:, i), 0.95, "k:");
@@ -59,18 +57,18 @@ function animate_trajectory(result)
 
         sigma1_i = 2*sigma_1_anim(i);
         sigma2_i = 2*sigma_2_anim(i);
-        draw_arm(theta_shoulder_i + sigma1_i, theta_elbow_i + sigma2_i, l1, l2, 2, 2, 'b--', 'co', 'ro')
-        draw_arm(theta_shoulder_i - sigma1_i, theta_elbow_i - sigma2_i, l1, l2, 2, 2, 'b--', 'co', 'ro')
+        draw_arm(theta_shoulder_i + sigma1_i, theta_elbow_i + sigma2_i, l1, l2, 2, 2, 'b--', 'co', 'ro', false)
+        draw_arm(theta_shoulder_i - sigma1_i, theta_elbow_i - sigma2_i, l1, l2, 2, 2, 'b--', 'co', 'ro', false)
 
         plot([-0.05 0.05], [0 0], 'k-', 'LineWidth', 16)
-        draw_arm(theta_shoulder_i, theta_elbow_i, l1, l2, 12, 8, 'b-', 'co', 'ro')
+        draw_arm(theta_shoulder_i, theta_elbow_i, l1, l2, 12, 8, 'b-', 'co', 'ro', true)
 
         legend("Mean EE Trajectory", "95% Confidence EE Position", "Mean EE Velocity", "95% Confidence EE Velocity", "95% Confidence Joint Angle Bounds")
         hold off
         axis equal 
         axis([-0.5 0.5 -0.1 0.8])
-        xlabel("$x$ position (m)", 'Interpreter', 'latex')
-        ylabel("$y$ position (m)", 'Interpreter', 'latex')
+        xlabel("X Position (m)")
+        ylabel("Y Position (m)")
         drawnow
         % frame = getframe(fig);
         % writeVideo(video, frame);
@@ -78,7 +76,7 @@ function animate_trajectory(result)
     % close(video)
 end
 
-function draw_arm(theta_shoulder, theta_elbow, l1, l2, l1_size, l2_size, l_fmt, j_fmt, ee_fmt)
+function draw_arm(theta_shoulder, theta_elbow, l1, l2, l1_size, l2_size, l_fmt, j_fmt, ee_fmt, print_angles)
     link1 = [0 0; l1*cos(theta_shoulder) l1*sin(theta_shoulder)];
     link2 = [link1(2, :); link1(2, 1) + l2*cos(theta_shoulder + theta_elbow) link1(2, 2) + l2*sin(theta_shoulder + theta_elbow)];
 
@@ -87,4 +85,11 @@ function draw_arm(theta_shoulder, theta_elbow, l1, l2, l1_size, l2_size, l_fmt, 
     plot(0, 0, j_fmt, 'MarkerSize', 14, 'MarkerFaceColor', 'c')
     plot(link1(2, 1), link1(2, 2), j_fmt, 'MarkerSize', l1_size, 'MarkerFaceColor', 'c')
     plot(link2(2, 1), link2(2, 2), ee_fmt, 'MarkerSize', l2_size, 'MarkerFaceColor', 'r')
+    if print_angles
+        rad2deg = 180/pi;
+        x_offset = 0.02;
+        y_offset = 0.005;
+        text(link1(1, 1) - x_offset, link1(1, 2) - 0.04, "\theta_1 = " + num2str(rad2deg*theta_shoulder, '%.f') + "°", 'FontWeight', 'bold', 'FontSize', 12)
+        text(link2(1, 1) + x_offset, link2(1, 2) + y_offset, "\theta_2 = " + num2str(rad2deg*theta_elbow, '%.f') + "°", 'FontWeight', 'bold', 'FontSize', 12)
+    end
 end
