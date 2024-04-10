@@ -49,7 +49,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     dt = T/N;
     % time = 0:dt:T;
     time = linspace(0,T,N+1);
-    wM = (wM_std*ones(2,1)).^2/dt; % Motor noise: go from std of continuous noise source to variance of discrete sample
+    wM = (wM_std*ones(auxdata.nMotorNoises,1)).^2/dt; % Motor noise: go from std of continuous noise source to variance of discrete sample
     sigma_w = diag(wM);
 
     Pmat_i = Pmat_init;
@@ -132,7 +132,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     X_init_sol = X_sol(:,1);
     T_sol = sol.value(T);
     dt_sol = T_sol/N;
-    wM_sol = (wM_std*ones(2,1)).^2/dt_sol;
+    wM_sol = (wM_std*ones(auxdata.nMotorNoises,1)).^2/dt_sol;
     sigma_w_sol = diag(wM_sol);
     auxdata.wM = wM_sol;
     auxdata.sigma_w = sigma_w_sol;

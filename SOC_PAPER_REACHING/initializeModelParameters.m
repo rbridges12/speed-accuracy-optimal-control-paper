@@ -1,7 +1,7 @@
 function auxdata = initializeModelParameters()
 auxdata.nDOF = 2;
 auxdata.nMuscles = 6;
-auxdata.nMotorNoises = 2;
+auxdata.nMotorNoises = 6; % Dimension of the MotorNoises matrix
 
 auxdata.forceField = 0;
 
