@@ -47,6 +47,9 @@ function animate_trajectory(result)
         theta_shoulder_i = q_anim(1, i);
         theta_elbow_i = q_anim(2, i);
 
+        % plot target
+        draw_circle(result.EE_target, result.target_width, 'k--')
+
         plot(EEpos_anim(1, 1:i), EEpos_anim(2, 1:i), 'k-', 'LineWidth', 2)
         error_ellipse(pos_cov_anim(:, :, i), EEpos_anim(:, i), 0.95, "k:");
 
@@ -63,7 +66,7 @@ function animate_trajectory(result)
         plot([-0.05 0.05], [0 0], 'k-', 'LineWidth', 16)
         draw_arm(theta_shoulder_i, theta_elbow_i, l1, l2, 12, 8, 'b-', 'co', 'ro', true)
 
-        legend("Mean EE Trajectory", "95% Confidence EE Position", "Mean EE Velocity", "95% Confidence EE Velocity", "95% Confidence Joint Angle Bounds")
+        legend("Target Area", "Mean EE Trajectory", "95% Confidence EE Position", "Mean EE Velocity", "95% Confidence EE Velocity", "95% Confidence Joint Angle Bounds")
         hold off
         axis equal 
         axis([-0.5 0.5 -0.1 0.8])
@@ -92,4 +95,11 @@ function draw_arm(theta_shoulder, theta_elbow, l1, l2, l1_size, l2_size, l_fmt, 
         text(link1(1, 1) - x_offset, link1(1, 2) - 0.04, "\theta_1 = " + num2str(rad2deg*theta_shoulder, '%.f') + "°", 'FontWeight', 'bold', 'FontSize', 12)
         text(link2(1, 1) + x_offset, link2(1, 2) + y_offset, "\theta_2 = " + num2str(rad2deg*theta_elbow, '%.f') + "°", 'FontWeight', 'bold', 'FontSize', 12)
     end
+end
+
+function draw_circle(center, radius, fmt)
+    th = 0:pi/50:2*pi;
+    xunit = radius * cos(th) + center(1);
+    yunit = radius * sin(th) + center(2);
+    plot(xunit, yunit, fmt)
 end

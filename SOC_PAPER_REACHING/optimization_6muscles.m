@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, EE_init, EE_final)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, EE_init, EE_target)
 
     import casadi.*
 
@@ -30,8 +30,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     % f = @(x)get_px(x, auxdata, q1_final);
     % q2_final = fsolve(f, ones, fsolve_options);
     % q_final = [q1_final; q2_final];
-    % EE_final = EndEffectorPos(q_final, auxdata)
-    % EE_final = [0.3; 0.5];
+    % EE_target = EndEffectorPos(q_final, auxdata)
+    % EE_target = [0.3; 0.5];
 
     % create optimization variables and provide initial guesses
     T_guess = 0.8;
@@ -94,7 +94,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     % test = 1
 
     % Reaching motion must end in the final reach position
-    opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_final == 0);
+    opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_target == 0);
 
     % Final joint velocity and acceleration equals zero (activations balanced)
     dX_end = functions.f_forwardMusculoskeletalDynamics(X(:,end),u(:,end),0);
@@ -178,6 +178,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     result.final_cost = final_cost;
     result.final_pos_cov = final_pos_cov;
     result.final_vel_cov = final_vel_cov;
+    result.EE_target = EE_target;
+    result.target_width = pos_conf_95;
 end
 
 
