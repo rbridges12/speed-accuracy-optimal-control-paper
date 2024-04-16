@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, EE_init, EE_final)
 
     import casadi.*
 
@@ -18,24 +18,27 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
 
     % given shoulder angles, solve for initial and final elbow angles such
     % that the EE x position is 1 at the start and finish
-    fsolve_options = optimoptions('fsolve','FiniteDifferenceType','central','StepTolerance',1e-10,'OptimalityTolerance',1e-10);
-    q1_init = 20*pi/180;
-    q1_final = 55*pi/180;
-    f = @(x)get_px(x, auxdata, q1_init);
-    q2_init = fsolve(f, ones, fsolve_options);
-    q_init = [q1_init; q2_init];
+    % fsolve_options = optimoptions('fsolve','FiniteDifferenceType','central','StepTolerance',1e-10,'OptimalityTolerance',1e-10);
+    % q1_init = 20*pi/180;
+    % q1_final = 55*pi/180;
+    % f = @(x)get_px(x, auxdata, q1_init);
+    % q2_init = fsolve(f, ones, fsolve_options);
+    % q_init = [q1_init; q2_init];
+    % EE_init = EndEffectorPos(q_init, auxdata)
+    % EE_init = [0; 0.3];
 
-    f = @(x)get_px(x, auxdata, q1_final);
-    q2_final = fsolve(f, ones, fsolve_options);
-    q_final = [q1_final; q2_final];
-    EE_final = EndEffectorPos(q_final, auxdata);
+    % f = @(x)get_px(x, auxdata, q1_final);
+    % q2_final = fsolve(f, ones, fsolve_options);
+    % q_final = [q1_final; q2_final];
+    % EE_final = EndEffectorPos(q_final, auxdata)
+    % EE_final = [0.3; 0.5];
 
     % create optimization variables and provide initial guesses
     T_guess = 0.8;
     time_guess = 0:0.01:T_guess;
     X_guess = zeros(nStates,N+1);
-    X_guess(1,:) = interp1([0 T_guess], [q_init(1) q_final(1)],time_guess);
-    X_guess(2,:) = interp1([0 T_guess], [q_init(2) q_final(2)],time_guess);
+    % X_guess(1,:) = interp1([0 T_guess], [q_init(1) q_final(1)],time_guess);
+    % X_guess(2,:) = interp1([0 T_guess], [q_init(2) q_final(2)],time_guess);
     X = opti.variable(nStates,N+1);
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
@@ -84,9 +87,11 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(T > 0);
 
     % constrain initial and final conditions
-    opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
+    % opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
+    opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
     dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
-    opti.subject_to(dX_init([3:4]) == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
+    opti.subject_to(dX_init == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
+    % test = 1
 
     % Reaching motion must end in the final reach position
     opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_final == 0);
