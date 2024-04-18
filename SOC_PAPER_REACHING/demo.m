@@ -15,9 +15,9 @@ N = 80; % number of discretized nodes
 wM_std = 0.03; % motor noise standard deviation
 EE_init = [0; 0.3];
 EE_target = [0; 0.45];
-final_pos_variance_95 = 0.03 ; % 95% confidence interval for final position radius
+final_pos_variance_95 = 0.04; % 95% confidence interval for final position radius
 final_vel_variance_95 = 0.1; % 95% confidence interval for final velocity radius
-k_u = 0.25; % control effort weight
+k_u = 0.1; % control effort weight
 k_t = 1; % duration weight
 
 result = optimization_6muscles(N, wM_std, final_pos_variance_95, final_vel_variance_95, k_u, k_t, EE_init, EE_target);
