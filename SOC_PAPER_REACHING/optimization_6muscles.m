@@ -16,29 +16,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
 
     opti = casadi.Opti(); % Create opti instance
 
-    % given shoulder angles, solve for initial and final elbow angles such
-    % that the EE x position is 1 at the start and finish
-    % fsolve_options = optimoptions('fsolve','FiniteDifferenceType','central','StepTolerance',1e-10,'OptimalityTolerance',1e-10);
-    % q1_init = 20*pi/180;
-    % q1_final = 55*pi/180;
-    % f = @(x)get_px(x, auxdata, q1_init);
-    % q2_init = fsolve(f, ones, fsolve_options);
-    % q_init = [q1_init; q2_init];
-    % EE_init = EndEffectorPos(q_init, auxdata)
-    % EE_init = [0; 0.3];
-
-    % f = @(x)get_px(x, auxdata, q1_final);
-    % q2_final = fsolve(f, ones, fsolve_options);
-    % q_final = [q1_final; q2_final];
-    % EE_target = EndEffectorPos(q_final, auxdata)
-    % EE_target = [0.3; 0.5];
-
     % create optimization variables and provide initial guesses
     T_guess = 0.8;
-    time_guess = 0:0.01:T_guess;
     X_guess = zeros(nStates,N+1);
-    % X_guess(1,:) = interp1([0 T_guess], [q_init(1) q_final(1)],time_guess);
-    % X_guess(2,:) = interp1([0 T_guess], [q_init(2) q_final(2)],time_guess);
     X = opti.variable(nStates,N+1);
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
@@ -118,7 +98,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(0 < X(1,:) < 180);
     opti.subject_to(0 < X(2,:) < 180);
 
-    % minimize sum of squared activations
+    % minimize weighted combination of energy usage (integral of activations) and duration
     opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T);
 
     % Set solver options

@@ -42,10 +42,10 @@ target_P = [(final_pos_variance_95/2)^2 0; 0 (final_pos_variance_95/2)^2]
 animate_trajectory(result);
 
 %%
-% plotNormalizedVelocity(result);
+plotNormalizedVelocity(result);
 
 %%
-% plotResults(result);
+plotResults(result);
 
 %% 
 format long
