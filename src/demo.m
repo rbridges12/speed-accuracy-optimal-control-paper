@@ -22,7 +22,7 @@ k_t = 1; % duration weight
 
 result = optimization_6muscles(N, wM_std, final_pos_variance_95, final_vel_variance_95, k_u, k_t, EE_init, EE_target);
 
-%%
+%% print covariances
 result.final_cost;
 2.*sqrt(result.final_pos_cov);
 2.*sqrt(result.final_vel_cov);
@@ -30,13 +30,6 @@ result.final_cost;
 covs = result.P_EEPos(:, end);
 P_EE_final = [covs(1) covs(2); covs(2) covs(3)]
 target_P = [(final_pos_variance_95/2)^2 0; 0 (final_pos_variance_95/2)^2]
-
-% figure
-% hold on
-% error_ellipse(P_EE_final, [0; 0], 0.95, "k:");
-% error_ellipse(target_P, [0; 0], 0.95, "r:");
-% legend("actual", "target")
-% hold off
 
 %%
 animate_trajectory(result);
@@ -47,7 +40,7 @@ plotNormalizedVelocity(result);
 %%
 plotResults(result);
 
-%% 
+%% print trajectory duration
 format long
-result.time(length(result.time))
+duration = result.time(end)
 
