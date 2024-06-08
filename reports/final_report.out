@@ -1,0 +1,13 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Problem Setup}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{System Model and Dynamics}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Trajectory Optimization}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Model Selection and Adaptation}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Modeling Signal Dependent Motor Noise}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{Approach}{}% 7
+\BOOKMARK [2][-]{subsection.3.1}{Trajectory Optimization using Direct Collocation}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.2}{Optimization Implementation}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{Results}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Fitt's Law Experiment}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Discussion}{}% 12
+\BOOKMARK [1][-]{section*.1}{References}{}% 13
