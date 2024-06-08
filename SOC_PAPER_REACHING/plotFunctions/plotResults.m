@@ -96,7 +96,8 @@ xlabel('Time (s)');
 ylabel('Y (m)');
 legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
 
-subplot(1,3,3)
+% subplot(1,3,3)
+figure
 plot(result.EEPos(:,1),result.EEPos(:,2),'LineWidth',2); hold on;
 for i = 1:10:length(result.time)
 Cov = [result.P_EEPos(1,i) result.P_EEPos(2,i); result.P_EEPos(2,i) result.P_EEPos(3,i)];
