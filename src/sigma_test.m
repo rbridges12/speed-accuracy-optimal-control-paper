@@ -11,35 +11,40 @@ function sigma_test(result)
     l1 = result.auxdata.l1;
     l2 = result.auxdata.l2;
     nStates = result.auxdata.nStates;
+    Q = result.Sigma_w;
 
     P_init = squeeze(P(:,:,1));
     x_init = X(:,1);
+    P_init = blkdiag(P_init, Q);
+    x_init = [x_init; zeros(size(Q,1),1)];
     kappa = 2;
-    auxdata = result.auxdata;
+    n = numel(x_init);
     dt = result.time(2);
-    f = @(x, u) x + forwardMusculoskeletalDynamics_motorNoise(x, u, 0, zeros(auxdata.nMotorNoises,1), auxdata) * dt;
+    wM = zeros(result.auxdata.nMotorNoises,1);
+    f = @(x, u, w) x + forwardMusculoskeletalDynamics_motorNoise(x, u, 0, w, result.auxdata) * dt;
     
     % sigma points around the reference point
-    L = sqrt(nStates + kappa) * chol(P_init, 'lower');
+    L = sqrt(n + kappa) * chol(P_init, 'lower');
     Y = x_init(:, ones(1, numel(x_init)));
     X = [x_init, Y + L, Y - L];
-    w = zeros(2 * nStates + 1, 1);
-    w(1) = kappa / (nStates + kappa);
-    w(2:end) = 1 / (2*(nStates + kappa));
-    X(1,:)
-    X(2,:)
+    w = zeros(2 * n + 1, 1);
+    w(1) = kappa / (n + kappa);
+    w(2:end) = 1 / (2*(n + kappa));
+
     Y = zeros(size(X));
-    s_polar = (chol(P_init,'lower') * randn(4,1000) + x_init)';
+    s_polar = (chol(P_init,'lower') * randn(n,1000) + x_init)';
 
     figure;
     for j = 1:numel(ts)
         mean = 0;
-        for i = 1:2*nStates+1
-            Y(:,i) = f(X(:,i), u(j,:)');
-            mean = mean + w(i) * Y(:,i);
+        for i = 1:2*n+1
+            % Y(1:4,i) = f(X(1:4,i), u(j,:)', wM);
+            Y(1:4,i) = f(X(1:4,i), u(j,:)', X(5:end,i));
+            Y(5:end,i) = X(5:end,i);
+            mean = mean + w(i) * Y(1:4,i);
         end
         % size(Y)
-        Cov = (Y - mean) * diag(w) * (Y - mean)';
+        Cov = (Y(1:4,:) - mean) * diag(w) * (Y(1:4,:) - mean)';
         % Cov_xy = (X - x) * diag(w) * (Y - mean)';
 
         subplot(2,1,1)
@@ -78,7 +83,9 @@ function sigma_test(result)
         % generate samples for both polar and cartesian coordinates
         s_cartesian = zeros(size(s_polar));
         for i = 1:size(s_polar,1)
-            s_cartesian(i,:) = f(s_polar(i,:)', u(j,:)');
+            % s_cartesian(i,1:4) = f(s_polar(i,1:4)', u(j,:)', wM);
+            s_cartesian(i,1:4) = f(s_polar(i,1:4)', u(j,:)', s_polar(i,5:end)');
+            s_cartesian(i,5:end) = s_polar(i,5:end);
         end
 
         % plot in Cartesian coordinates
@@ -90,7 +97,7 @@ function sigma_test(result)
         h{4} = plot(Y(1,:), Y(2,:), '.', 'color', Darkgrey, 'markersize', 20);
         xlabel('$x=r\cos(\theta)$', 'Interpreter','latex'); 
         ylabel('$y=r\sin(\theta)$', 'Interpreter','latex');
-        % legend([h{1}, h{2}, h{3}, h{4}], 'Samples', 'Mean', '$95\%$ Confidence Ellipse', 'Sigma Points', 'location', 'north outside')
+        legend([h{1}, h{2}, h{3}, h{4}], 'Samples', 'Mean', '$95\%$ Confidence Ellipse', 'Sigma Points', 'location', 'north outside')
         % text(1.6, 1.8, '$\kappa = 2$', 'fontsize',fsize, 'Interpreter','latex')
         axis equal auto
         % set(gca,'fontsize',fsize)
