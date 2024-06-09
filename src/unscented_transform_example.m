@@ -68,7 +68,7 @@ text(1.75, 1.6, '$\kappa = 2$', 'fontsize',fsize, 'Interpreter','latex')
 axis equal auto
 set(gca,'fontsize',fsize)
 set(gca,'TickLabelInterpreter','latex')
-figuresize(21,21,'cm')
+%figuresize(21,21,'cm')
 % print -opengl -dpng -r600 ut_example_polar.png
 
 % plot in Cartesian coordinates
@@ -85,5 +85,5 @@ text(1.6, 1.8, '$\kappa = 2$', 'fontsize',fsize, 'Interpreter','latex')
 axis equal auto
 set(gca,'fontsize',fsize)
 set(gca,'TickLabelInterpreter','latex')
-figuresize(21,21,'cm')
+%figuresize(21,21,'cm')
 % print -opengl -dpng -r600 ut_example_cart.png

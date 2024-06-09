@@ -38,7 +38,7 @@ function animate_trajectory(result)
     % video = VideoWriter('planar_arm_trajectory.avi')
     % video.FrameRate = FPS;
     % open(video)
-    subplot(2, 2, 1:4)
+    %subplot(2, 2, 1:4)
     for i = 1:numel(t_anim)
         cla
         hold on 

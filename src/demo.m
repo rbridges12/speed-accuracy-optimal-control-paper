@@ -44,3 +44,6 @@ plotResults(result);
 format long
 duration = result.time(end)
 
+%%
+sigma_test(result);
+
