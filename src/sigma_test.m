@@ -4,6 +4,13 @@ function sigma_test(result)
     X = result.X;
     u = result.e_ff;
     P = result.Pmat;
+    EEpos = result.EEPos';
+    EEpos_vars = result.P_EEPos;
+    P_EEpos = zeros(2, 2, numel(ts));
+    P_EEpos(1, 1, :) = EEpos_vars(1, :);
+    P_EEpos(2, 2, :) = EEpos_vars(3, :);
+    P_EEpos(1, 2, :) = EEpos_vars(2, :);
+    P_EEpos(2, 1, :) = EEpos_vars(2, :);
     l1 = result.auxdata.l1;
     l2 = result.auxdata.l2;
     nStates = result.auxdata.nStates;
@@ -29,7 +36,7 @@ function sigma_test(result)
     w(2:end) = 1 / (2*(n + kappa));
 
     sigma_points_new = zeros(size(sigma_points));
-    EEpos = zeros(2, numel(w));
+    u_EEpos = zeros(2, numel(w));
     particles = (chol(P_init,'lower') * randn(n,n_particles) + x_init);
     s_EEpos = zeros(2, n_particles);
 
@@ -46,6 +53,8 @@ function sigma_test(result)
         % extract linearized data
         X_j = X(:,j);
         P_j = squeeze(P(:,:,j));
+        EEpos_j = EEpos(:,j);
+        P_EEpos_j = P_EEpos(:,:,j);
 
         % propagate sigma points
         sigma_mean = 0;
@@ -56,11 +65,11 @@ function sigma_test(result)
             sigma_points_new(5:end,i) = sigma_points(5:end,i);
             sigma_mean = sigma_mean + w(i) * sigma_points_new(1:4,i);
 
-            EEpos(:,i) = EndEffectorPos(sigma_points_new(1:2,i),result.auxdata);
-            EEpos_mean = EEpos_mean + w(i) * EEpos(:,i);
+            u_EEpos(:,i) = EndEffectorPos(sigma_points_new(1:2,i),result.auxdata);
+            EEpos_mean = EEpos_mean + w(i) * u_EEpos(:,i);
         end
         Cov = (sigma_points_new(1:4,:) - sigma_mean) * diag(w) * (sigma_points_new(1:4,:) - sigma_mean)';
-        EEpos_cov = (EEpos - EEpos_mean) * diag(w) * (EEpos - EEpos_mean)';
+        EEpos_cov = (u_EEpos - EEpos_mean) * diag(w) * (u_EEpos - EEpos_mean)';
 
         % propagate Monte Carlo simulation
         particles_new = zeros(size(particles));
@@ -69,8 +78,8 @@ function sigma_test(result)
             particles_new(5:end,i) = mvnrnd(wM, Q, 1);
             s_EEpos(:,i) = EndEffectorPos(particles_new(1:2,i),result.auxdata);
         end
-        s_mean = mean(particles_new(1:4,:),2)
-        s_cov = cov(particles_new(1:4,:)')
+        s_mean = mean(particles_new(1:4,:),2);
+        s_cov = cov(particles_new(1:4,:)');
         s_EEpos_mean = mean(s_EEpos,2);
         s_EEpos_cov = cov(s_EEpos');
 
@@ -127,44 +136,43 @@ function sigma_test(result)
         nexttile; cla; hold on
         title("State Space Distribution")
 
-        % create confidence ellipse
-        phi = (-pi:.01:pi)';
-        circle = [cos(phi), sin(phi)];
-        % Chi-squared 2-DOF 95% percent confidence (0.05): 5.991
-        scale = sqrt(5.991);
-        ellipse_linearized = (scale * chol(P_j(1:2,1:2),'lower') * circle' + X_j(1:2))';
-        mean_q = sigma_mean(1:2);
-        Cov_q = Cov(1:2,1:2);
-        ellipse_unscented = (scale * chol(Cov_q,'lower') * circle' + mean_q)';
-        s_mean_q = s_mean(1:2);
-        s_cov_q = s_cov(1:2,1:2);
-        ellipse_monte_carlo = (scale * chol(s_cov_q,'lower') * circle' + s_mean_q)';
+        ellipse_linearized = confidence_ellipse(X_j(1:2), P_j(1:2,1:2));
+        ellipse_unscented = confidence_ellipse(sigma_mean(1:2), Cov(1:2,1:2));
+        ellipse_monte_carlo = confidence_ellipse(s_mean(1:2), s_cov(1:2,1:2));
 
-        h = []; % plot handle
-        h{1} = plot(particles_new(1,:), particles_new(2,:), '.', 'color', DupontGray);
-        h{2} = plot(sigma_mean(1), sigma_mean(2), 'o', 'color', VermillionRed, 'markersize', 18);
-        h{3} = plot(ellipse_unscented(:,1), ellipse_unscented(:,2), 'color', VermillionRed, 'linewidth', 3);
-        h{4} = plot(sigma_points_new(1,:), sigma_points_new(2,:), '.', 'color', Darkgrey, 'markersize', 20);
-        h{5} = plot(s_mean(1), s_mean(2), 'o', 'color', DarkBlue, 'markersize', 18);
-        h{6} = plot(ellipse_monte_carlo(:,1), ellipse_monte_carlo(:,2), 'color', DarkBlue, 'linewidth', 3);
-        h{7} = plot(X_j(1), X_j(2), 'o', 'color', Azure, 'markersize', 18);
-        h{8} = plot(ellipse_linearized(:,1), ellipse_linearized(:,2), 'color', Azure, 'linewidth', 3);
+        plot(particles_new(1,:), particles_new(2,:), '.', 'color', DupontGray);
+        plot(sigma_points_new(1,:), sigma_points_new(2,:), '.', 'color', Darkgrey, 'markersize', 20);
+        plot(X_j(1), X_j(2), 'o', 'color', Azure, 'markersize', 18);
+        plot(ellipse_linearized(:,1), ellipse_linearized(:,2), 'color', Azure, 'linewidth', 3);
+        plot(sigma_mean(1), sigma_mean(2), 'o', 'color', VermillionRed, 'markersize', 18);
+        plot(ellipse_unscented(:,1), ellipse_unscented(:,2), 'color', VermillionRed, 'linewidth', 3);
+        plot(s_mean(1), s_mean(2), 'o', 'color', DarkBlue, 'markersize', 18);
+        plot(ellipse_monte_carlo(:,1), ellipse_monte_carlo(:,2), 'color', DarkBlue, 'linewidth', 3);
         ylabel('$\theta_2$', 'Interpreter','latex');
         xlabel('$\theta_1$', 'Interpreter','latex'); 
-        legend([h{1}, h{2}, h{3}, h{4}], 'Samples', 'Mean', '$95\%$ Confidence Ellipse', 'Sigma Points')
+        legend("Particles", "Sigma Points", "Linearized Mean", "Linearized Covariance", "Unscented Mean", "Unscented Covariance", "Monte Carlo Mean", "Monte Carlo Covariance", 'location', 'east outside')
         axis equal auto
         set(gca,'TickLabelInterpreter','latex')
 
         % plot end effector space distributions
         nexttile; cla; hold on
         title("End Effector Distribution")
-        plot(s_EEpos(1,:), s_EEpos(2,:), '.', 'color', DupontGray);
 
-        plot(s_EEpos_mean(1), s_EEpos_mean(2), 'k-', 'LineWidth', 2)
-        error_ellipse(s_EEpos_cov, s_EEpos_mean, 0.95, "k:");
-        
-        plot(EEpos_mean(1), EEpos_mean(2), 'k-', 'LineWidth', 2)
-        error_ellipse(EEpos_cov, EEpos_mean, 0.95, "k:");
+        ellipse_EE_linearized = confidence_ellipse(EEpos_j, P_EEpos_j);
+        ellipse_EE_unscented = confidence_ellipse(EEpos_mean, EEpos_cov);
+        ellipse_EE_monte_carlo = confidence_ellipse(s_EEpos_mean, s_EEpos_cov);
+
+        plot(s_EEpos(1,:), s_EEpos(2,:), '.', 'color', DupontGray);
+        plot(u_EEpos(1,:), u_EEpos(2,:), '.', 'color', Darkgrey, 'markersize', 20);
+
+        plot(EEpos_j(1), EEpos_j(2), 'o', 'color', Azure, 'markersize', 18);
+        plot(ellipse_EE_linearized(:,1), ellipse_EE_linearized(:,2), 'color', Azure, 'linewidth', 3);
+
+        plot(EEpos_mean(1), EEpos_mean(2), 'o', 'color', VermillionRed, 'markersize', 18);
+        plot(ellipse_EE_unscented(:,1), ellipse_EE_unscented(:,2), 'color', VermillionRed, 'linewidth', 3);
+
+        plot(s_EEpos_mean(1), s_EEpos_mean(2), 'o', 'LineWidth', 2)
+        plot(ellipse_EE_monte_carlo(:,1), ellipse_EE_monte_carlo(:,2), 'color', DarkBlue, 'linewidth', 3);
 
         axis equal auto
 
@@ -179,4 +187,12 @@ function draw_circle(center, radius, fmt)
     xunit = radius * cos(th) + center(1);
     yunit = radius * sin(th) + center(2);
     plot(xunit, yunit, fmt)
+end
+
+function ellipse = confidence_ellipse(mean, cov)
+    phi = (-pi:.01:pi)';
+    circle = [cos(phi), sin(phi)];
+    % Chi-squared 2-DOF 95% percent confidence (0.05): 5.991
+    scale = sqrt(5.991);
+    ellipse = (scale * chol(cov,'lower') * circle' + mean)';
 end
