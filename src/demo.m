@@ -12,15 +12,15 @@ addpath("./plotFunctions")
 
 % set model and optimization parameters
 N = 80; % number of discretized nodes
-wM_std = 0.05; % motor noise standard deviation
-EE_init = [0; 0.3];
-EE_target = [-0.15; .5];
-final_pos_variance_95 = 1; % 95% confidence interval for final position radius
-final_vel_variance_95 = 0.1; % 95% confidence interval for final velocity radius
-k_u = 0.01; % control effort weight
+motor_noise_stddev = 0.03; % motor noise standard deviation
+initial_pos = [0; 0.3];
+target_pos = [-0.1; .45];
+target_pos_accuracy = 0.03; % 95% confidence interval for final position radius
+target_vel_accuracy = 0.1; % 95% confidence interval for final velocity radius
+k_u = 0.1; % control effort weight
 k_t = 1; % duration weight
 
-result = optimization_6muscles(N, wM_std, final_pos_variance_95, final_vel_variance_95, k_u, k_t, EE_init, EE_target);
+result = optimization_6muscles(N, motor_noise_stddev, target_pos_accuracy, target_vel_accuracy, k_u, k_t, initial_pos, target_pos);
 
 %% print covariances
 result.final_cost;
@@ -29,7 +29,7 @@ result.final_cost;
 
 covs = result.P_EEPos(:, end);
 P_EE_final = [covs(1) covs(2); covs(2) covs(3)]
-target_P = [(final_pos_variance_95/2)^2 0; 0 (final_pos_variance_95/2)^2]
+target_P = [(target_pos_accuracy/2)^2 0; 0 (target_pos_accuracy/2)^2]
 
 %%
 animate_trajectory(result);
