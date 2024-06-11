@@ -12,13 +12,13 @@ addpath("./plotFunctions")
 
 % set model and optimization parameters
 N = 80; % number of discretized nodes
-motor_noise_stddev = 0.03; % motor noise standard deviation
+motor_noise_stddev = 0.036; % motor noise standard deviation
 initial_pos = [0; 0.3];
 target_pos = [-0.1; .45];
-target_pos_accuracy = 0.03; % 95% confidence interval for final position radius
+target_radius = 0.023; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.1; % 95% confidence interval for final velocity radius
 k_u = 0.1; % control effort weight
-k_t = 1; % duration weight
+k_t = 0; % duration weight
 
 result = optimization_6muscles(N, motor_noise_stddev, target_pos_accuracy, target_vel_accuracy, k_u, k_t, initial_pos, target_pos);
 

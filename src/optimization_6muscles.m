@@ -161,6 +161,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     result.EE_target = EE_target;
     result.target_width = pos_conf_95;
     result.Sigma_w = sigma_w_sol;
+    result.debug = opti.debug;
+    result.stats = opti.stats;
 end
 
 
