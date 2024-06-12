@@ -45,5 +45,5 @@ format long
 duration = result.time(end)
 
 %%
-sigma_test(result);
+distributions_test(result);
 

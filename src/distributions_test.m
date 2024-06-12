@@ -154,6 +154,8 @@ function distributions_test(result)
         plot(s_EEpos_mean(1), s_EEpos_mean(2), 'o', 'color', DarkBlue, 'markersize', 18, 'LineWidth', 1.5)
         plot(ellipse_EE_monte_carlo(:,1), ellipse_EE_monte_carlo(:,2), 'color', DarkBlue, 'linewidth', 3);
 
+        xlabel("X Position (m)")
+        ylabel("Y Position (m)")
         axis equal auto
 
         drawnow
