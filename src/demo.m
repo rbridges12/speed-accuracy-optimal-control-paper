@@ -20,7 +20,7 @@ target_vel_accuracy = 0.1; % 95% confidence interval for final velocity radius
 k_u = 0.1; % control effort weight
 k_t = 0; % duration weight
 
-result = optimization_6muscles(N, motor_noise_stddev, target_pos_accuracy, target_vel_accuracy, k_u, k_t, initial_pos, target_pos);
+result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, initial_pos, target_pos);
 
 %% print covariances
 result.final_cost;

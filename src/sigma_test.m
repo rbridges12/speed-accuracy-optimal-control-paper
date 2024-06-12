@@ -22,7 +22,7 @@ function sigma_test(result)
     x_init = [x_init; zeros(size(Q,1),1)];
     x_sigma = x_init;
     P_sigma = P_init;
-    kappa = 0.1;
+    kappa = 2;
     n_particles = 1000;
     n = numel(x_init);
     dt = result.time(2);
@@ -36,7 +36,6 @@ function sigma_test(result)
     % w = zeros(2 * n + 1, 1);
     % w(1) = kappa / (n + kappa);
     % w(2:end) = 1 / (2*(n + kappa));
-    ut = unscented_transform(x_init, P_init, f, kappa);
 
     particles = (chol(P_init,'lower') * randn(n,n_particles) + x_init);
     s_EEpos = zeros(2, n_particles);
@@ -58,17 +57,17 @@ function sigma_test(result)
         P_EEpos_j = P_EEpos(:,:,j);
 
         % propagate sigma points
+        L = sqrt(n + kappa) * chol(P_sigma, 'lower');
+        Y = x_sigma(:, ones(1, numel(x_sigma)));
+        sigma_points = [x_sigma, Y + L, Y - L];
+        w = zeros(2 * n + 1, 1);
+        w(1) = kappa / (n + kappa);
+        w(2:end) = 1 / (2*(n + kappa));
+        sigma_points_new = zeros(size(sigma_points));
+        u_EEpos = zeros(2, numel(w));
         sigma_mean = 0;
         EEpos_mean = 0;
         for i = 1:2*n+1
-            L = sqrt(n + kappa) * chol(P_sigma, 'lower');
-            Y = x_sigma(:, ones(1, numel(x_sigma)));
-            sigma_points = [x_sigma, Y + L, Y - L];
-            w = zeros(2 * n + 1, 1);
-            w(1) = kappa / (n + kappa);
-            w(2:end) = 1 / (2*(n + kappa));
-            sigma_points_new = zeros(size(sigma_points));
-            u_EEpos = zeros(2, numel(w));
             % sigma_points_new(1:4,i) = f(sigma_points(1:4,i), u(j,:)', wM);
             sigma_points_new(1:4,i) = f(sigma_points(1:4,i), u(j,:)', sigma_points(5:end,i));
             sigma_points_new(5:end,i) = sigma_points(5:end,i);
@@ -77,10 +76,7 @@ function sigma_test(result)
             u_EEpos(:,i) = EndEffectorPos(sigma_points_new(1:2,i),result.auxdata);
             EEpos_mean = EEpos_mean + w(i) * u_EEpos(:,i);
         end
-        P_sigma
         P_sigma(1:4, 1:4) = (sigma_points_new(1:4,:) - sigma_mean) * diag(w) * (sigma_points_new(1:4,:) - sigma_mean)';
-        P_sigma
-        chol(P_sigma(1:4,1:4), 'lower')
         x_sigma(1:4) = sigma_mean;
         EEpos_cov = (u_EEpos - EEpos_mean) * diag(w) * (u_EEpos - EEpos_mean)';
 
