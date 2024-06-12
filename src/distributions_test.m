@@ -1,4 +1,4 @@
-function sigma_test(result)
+function distributions_test(result)
     ts = result.time;
     q = result.q;
     X = result.X;
@@ -93,49 +93,16 @@ function sigma_test(result)
         nexttile([1 2]); cla; hold on
         title("Arm Trajectory")
 
-        % plot target
         draw_circle(result.EE_target, result.target_width, 'k--')
 
-        % draw sigma point arms
-        % for i = 1:size(sigma_points_new, 2)
-        %     weight = w(i) * 15;
-        %     draw_arm(sigma_points_new(1,i), sigma_points_new(2,i), l1, l2, weight, weight, 'b--', 'co', 'ro', false)
-        % end
-
-        % draw mean arms
-        % draw_arm(X_j(1), X_j(2), l1, l2, 1, 1, 'b-', 'co', 'ro', true)
-        % draw_arm(sigma_mean(1), sigma_mean(2), l1, l2, 1, 1, 'r-', 'co', 'ro', true)
         plot([-0.05 0.05], [0 0], 'k-', 'LineWidth', 16)
         draw_arm(s_mean(1), s_mean(2), l1, l2, 12, 8, 'b-', 'co', 'ro', true)
 
-        % formatting
         legend("Target")
         axis equal 
         axis([-0.5 0.5 -0.1 0.8])
         xlabel("X Position (m)")
         ylabel("Y Position (m)")
-
-        % plot Monte Carlo simulation
-        % nexttile; cla; hold on
-        % title("Monte Carlo Simulation")
-
-        % % plot target
-        % draw_circle(result.EE_target, result.target_width, 'k--')
-
-
-        % for i = 1:25:n_particles
-        %     weight = 0.8;
-        %     draw_arm(particles_new(1,i), particles_new(2,i), l1, l2, weight, weight, 'b--', 'co', 'ro', false)
-        % end
-
-        % % draw mean arm
-        % draw_arm(s_mean(1), s_mean(2), l1, l2, 1, 1, 'r-', 'co', 'ro', true)
-
-        % % formatting
-        % axis equal 
-        % axis([-0.5 0.5 -0.1 0.8])
-        % xlabel("X Position (m)")
-        % ylabel("Y Position (m)")
 
         % plot state space distributions
         nexttile; cla; hold on
