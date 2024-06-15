@@ -13,3 +13,7 @@ speedaccuracy_results/*/
 # matlab
 *.asv
 */data/*.mat
+
+# python
+*.pyc
+__pycache__/
