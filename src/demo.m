@@ -47,3 +47,5 @@ duration = result.time(end)
 %%
 distributions_test(result);
 
+%% save data
+save('result.mat', 'result');
