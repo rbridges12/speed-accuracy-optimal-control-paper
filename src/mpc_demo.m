@@ -53,7 +53,7 @@ grid on;
 
 %% linearization test
 dt = 0.005; % discretization time step
-lin_interval = 0.1; % time between updates of the linearization point
+lin_interval = 1; % time between updates of the linearization point
 
 % simulate dynamics
 f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
@@ -96,6 +96,54 @@ subplot(2, 2, 4);
 plot(ts, xs_d(4, :), 'b', ts, xs_dl(4, :), 'r--', 'LineWidth', 2);
 title('qdot2');
 grid on;
+
+%% QP formulation
+dt = 0.005; % discretization time step
+n = 4; l = 6; % state and control dimensions
+N_h = 20; % prediction horizon
+Q = eye(n); % state cost
+R = eye(l); % input cost
+Qf = 100 * eye(n); % terminal state cost
+  
+% define block cost matrices
+HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
+HR = kron(eye(N_h - 1), R);
+
+% linearized dynamics
+f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
+xstar = zeros(n, 1);
+ustar = zeros(l, 1);
+[A, B] = finite_diff_jacobians(f, xstar, ustar);
+
+cvx_begin
+    variable x(n, N_h);
+    variable u(l, N_h - 1);
+    minimize(quad_form(x(:), HQ) + quad_form(u(:), HR))
+    subject to
+        for i = 1:N_h - 1
+            x(:, i + 1) == f(xstar, ustar) + A * (x(:, i) - xstar) + B * (u(:, i) - ustar);
+        end
+cvx_end
+
+% plot the results
+figure;
+subplot(2, 2, 1);
+plot(1:N_h, x(1, :), 'b', 'LineWidth', 2);
+title('q1');
+grid on;
+subplot(2, 2, 2);
+plot(1:N_h, x(2, :), 'b', 'LineWidth', 2);
+title('q2');
+grid on;
+subplot(2, 2, 3);
+plot(1:N_h, x(3, :), 'b', 'LineWidth', 2);
+title('qdot1');
+grid on;
+subplot(2, 2, 4);
+plot(1:N_h, x(4, :), 'b', 'LineWidth', 2);
+title('qdot2');
+grid on;
+
 
 %%
 function Xk1 = discrete_dynamics(Xk, uk, wMk, auxdata, dt)
