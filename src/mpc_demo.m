@@ -13,6 +13,7 @@ load('result.mat');
 %% discretization test
 % u = @(t) ones(6, 1) * 0.1;
 u = @(t) interp1(result.time, result.e_ff, t)';
+u_gt = u;
 
 % simulate the continuous time dynamics
 continuous_ode = @(t, x) forwardMusculoskeletalDynamics_motorNoise(x, u(t), 0, zeros(6, 1), result.auxdata);
@@ -102,8 +103,12 @@ dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
 N_h = 20; % prediction horizon
 Q = eye(n); % state cost
-R = eye(l); % input cost
+R = 0.0001 * eye(l); % input cost
 Qf = 100 * eye(n); % terminal state cost
+x_init = result.X(:, 1); % initial state
+x_target = result.X(:, end); % target state
+u_min = 0.001; u_max = 1; % control bounds
+q_min = 0; q_max = 180; % state bounds
   
 % define block cost matrices
 HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
@@ -118,11 +123,16 @@ ustar = zeros(l, 1);
 cvx_begin
     variable x(n, N_h);
     variable u(l, N_h - 1);
-    minimize(quad_form(x(:), HQ) + quad_form(u(:), HR))
+    x_error = x - repmat(x_target, 1, N_h);
+    minimize(quad_form(x_error(:), HQ) + quad_form(u(:), HR))
     subject to
         for i = 1:N_h - 1
             x(:, i + 1) == f(xstar, ustar) + A * (x(:, i) - xstar) + B * (u(:, i) - ustar);
+            q_min <= x(1:2, i) <= q_max;
+            u_min <= u(:, i) <= u_max;
         end
+        x(:, 1) == x_init;
+
 cvx_end
 
 % plot the results
@@ -142,6 +152,14 @@ grid on;
 subplot(2, 2, 4);
 plot(1:N_h, x(4, :), 'b', 'LineWidth', 2);
 title('qdot2');
+grid on;
+
+figure;
+hold on;
+for i = 1:l
+    plot(1:N_h - 1, u(i, :), 'LineWidth', 2);
+end
+title('u');
 grid on;
 
 
