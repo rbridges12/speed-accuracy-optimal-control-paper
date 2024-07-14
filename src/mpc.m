@@ -12,17 +12,15 @@ load('result.mat');
 
 dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
-N_h = 20; % prediction horizon
-u_steps = 3; % control steps per prediction horizon
-Q = eye(n); % state cost
-R = 0.0001 * eye(l); % input cost
-Qf = 100 * eye(n); % terminal state cost
+t_h = 0.6; N_h = round(t_h / dt); % prediction horizon
+u_steps = N_h - 1; % control steps per prediction horizon
+Q = diag([10, 10, 1, 1]); % state cost
+R = 0.5 * eye(l); % input cost
+Qf = 100 * Q; % terminal state cost
 x_init = result.X(:, 1); % initial state
 x_target = result.X(:, end); % target state
 u_min = 0.001; u_max = 1; % control bounds
 q_min = 0; q_max = 180; % state bounds
-x_traj = [x_init];
-u_traj = [zeros(l, 1)];
   
 f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
 
@@ -30,7 +28,10 @@ f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
 HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
 HR = kron(eye(N_h - 1), R);
 
-for i = 1:100
+x_traj = [x_init];
+x_lin_traj = [x_init];
+u_traj = [zeros(l, 1)];
+for i = 1:1
     % linearized dynamics
     xstar = x_traj(:, end);
     ustar = u_traj(:, end);
@@ -41,12 +42,15 @@ for i = 1:100
         variable u(l, N_h - 1);
         x_error = x - repmat(x_target, 1, N_h);
         minimize(quad_form(x_error(:), HQ) + quad_form(u(:), HR))
+
         subject to
             for i = 1:N_h - 1
                 x(:, i + 1) == f(xstar, ustar) + A * (x(:, i) - xstar) + B * (u(:, i) - ustar);
                 q_min <= x(1:2, i) <= q_max;
                 u_min <= u(:, i) <= u_max;
             end
+            q_min <= x(1:2, end) <= q_max;
+
             x(:, 1) == x_traj(:, end);
     cvx_end
 
@@ -54,36 +58,41 @@ for i = 1:100
         x_next = f(x_traj(:, end), u(:, j));
         x_traj = [x_traj x_next];
         u_traj = [u_traj u(:, j)];
+
+        x_lin_next = f(xstar, ustar) + A * (x_lin_traj(:, end) - xstar) + B * (u(:, j) - ustar);
+        x_lin_traj = [x_lin_traj x_lin_next];
     end
 end
 
 %% plot the results
+ts = 0:dt:(size(x_traj, 2) - 1) * dt;
 figure;
-subplot(2, 2, 1);
-plot(1:size(x_traj, 2), x_traj(1, :), 'b', 'LineWidth', 2);
-title('q1');
-grid on;
-subplot(2, 2, 2);
-plot(1:size(x_traj, 2), x_traj(2, :), 'b', 'LineWidth', 2);
-title('q2');
-grid on;
-subplot(2, 2, 3);
-plot(1:size(x_traj, 2), x_traj(3, :), 'b', 'LineWidth', 2);
-title('qdot1');
-grid on;
-subplot(2, 2, 4);
-plot(1:size(x_traj, 2), x_traj(4, :), 'b', 'LineWidth', 2);
-title('qdot2');
-grid on;
-
-figure;
-hold on;
-for i = 1:l
-    plot(1:size(u_traj, 2), u_traj(i, :), 'LineWidth', 2);
+titles = {'q1','q2','qdot1','qdot2'};
+for i = 1:4
+    subplot(2, 2, i);
+    hold on;
+    plot(ts, x_traj(i, :), 'b', 'LineWidth', 2);
+    plot(ts, x_lin_traj(i, :), 'g', 'LineWidth', 2);
+    title(titles(i));
+    legend("Nonlinear Dynamics", "Linearized Dynamics");
+    grid on;
 end
-title('u');
-grid on;
 
+figure;
+titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
+for i = 1:6
+    subplot(3, 2, i);
+    hold on;
+    stairs(result.time, result.e_ff(:, i), 'r', 'LineWidth', 2);
+    stairs(ts, u_traj(i, :), 'b', 'LineWidth', 2);
+    title(titles(i));
+    ylim([-0.1 0.1]);
+    xlim([0 result.time(end)]);
+    xlabel('Time (s)');
+    ylabel('Activation');
+    legend("Nonlinear TrajOpt", "Linearized MPC");
+    grid on;
+end
 
 %%
 function Xk1 = discrete_dynamics(Xk, uk, wMk, auxdata, dt)
