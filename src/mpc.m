@@ -12,11 +12,12 @@ load('result.mat');
 
 dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
-t_h = 0.6; N_h = round(t_h / dt); % prediction horizon
-u_steps = N_h - 1; % control steps per prediction horizon
+t_h = 0.1; N_h = round(t_h / dt); % prediction horizon
+u_steps = 5; % control steps per prediction horizon
+iterations = 30;
 Q = diag([10, 10, 1, 1]); % state cost
-R = 0.5 * eye(l); % input cost
-Qf = 100 * Q; % terminal state cost
+R = 100 * eye(l); % input cost
+Qf = diag([1000, 1000, 100, 100]); % terminal state cost
 x_init = result.X(:, 1); % initial state
 x_target = result.X(:, end); % target state
 u_min = 0.001; u_max = 1; % control bounds
@@ -28,15 +29,17 @@ f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
 HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
 HR = kron(eye(N_h - 1), R);
 
+% MPC loop
 x_traj = [x_init];
 x_lin_traj = [x_init];
 u_traj = [zeros(l, 1)];
-for i = 1:1
-    % linearized dynamics
+for i = 1:iterations
+    % linearize dynamics around current state and control
     xstar = x_traj(:, end);
     ustar = u_traj(:, end);
     [A, B] = finite_diff_jacobians(f, xstar, ustar);
 
+    % rollout horizon trajectory using convex optimization
     cvx_begin
         variable x(n, N_h);
         variable u(l, N_h - 1);
@@ -54,6 +57,8 @@ for i = 1:1
             x(:, 1) == x_traj(:, end);
     cvx_end
 
+    % execute the first few steps of the trajectory on the "actual" system (nonlinear dynamics)
+    x_lin_traj(:, end) = x_traj(:, end);
     for j = 1:u_steps
         x_next = f(x_traj(:, end), u(:, j));
         x_traj = [x_traj x_next];
@@ -72,7 +77,7 @@ for i = 1:4
     subplot(2, 2, i);
     hold on;
     plot(ts, x_traj(i, :), 'b', 'LineWidth', 2);
-    plot(ts, x_lin_traj(i, :), 'g', 'LineWidth', 2);
+    plot(ts, x_lin_traj(i, :), 'g--', 'LineWidth', 2);
     title(titles(i));
     legend("Nonlinear Dynamics", "Linearized Dynamics");
     grid on;
