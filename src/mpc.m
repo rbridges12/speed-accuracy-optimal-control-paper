@@ -12,9 +12,9 @@ load('result.mat');
 
 dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
-t_h = 0.1; N_h = round(t_h / dt); % prediction horizon
-u_steps = 5; % control steps per prediction horizon
-iterations = 30;
+t_h = 0.2; N_h = round(t_h / dt); % prediction horizon
+u_steps = 1; % control steps per prediction horizon
+iterations = 150;
 Q = diag([10, 10, 1, 1]); % state cost
 R = 100 * eye(l); % input cost
 Qf = diag([1000, 1000, 100, 100]); % terminal state cost
@@ -71,10 +71,12 @@ for i = 1:iterations
         x_lin_traj = [x_lin_traj x_lin_next];
     end
 
-    % animation
+    % live animation
     ts = 0:dt:(size(x_traj, 2) - 1) * dt;
     titles = {'q1','q2','qdot1','qdot2'};
+    ylabels = {"Shoulder Angle (rad)", "Elbow Angle (rad)", "Shoulder Velocity (rad/s)", "Elbow Velocity (rad/s)"};
     tiledlayout(2, 2);
+    title("MPC Trajectory");
     for j = 1:4
         nexttile; cla;
         hold on; grid on;
@@ -82,9 +84,10 @@ for i = 1:iterations
         plot(ts, x_traj(j, :), 'b', 'LineWidth', 2);
         plot(h_ts, x(j, :), 'g--', 'LineWidth', 2);
         title(titles(j));
-        legend("Nonlinear TrajOpt", "MPC Trajectory", "MPC Horizon");
         xlabel('Time (s)');
+        ylabel(ylabels{j});
     end
+    legend("Reference", "Actual Trajectory", "Planned Trajectory", "location", "west outside");
     drawnow
 end
 
