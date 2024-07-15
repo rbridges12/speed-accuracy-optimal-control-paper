@@ -30,6 +30,7 @@ HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
 HR = kron(eye(N_h - 1), R);
 
 % MPC loop
+figure;
 x_traj = [x_init];
 x_lin_traj = [x_init];
 u_traj = [zeros(l, 1)];
@@ -40,7 +41,7 @@ for i = 1:iterations
     [A, B] = finite_diff_jacobians(f, xstar, ustar);
 
     % rollout horizon trajectory using convex optimization
-    cvx_begin
+    cvx_begin quiet
         variable x(n, N_h);
         variable u(l, N_h - 1);
         x_error = x - repmat(x_target, 1, N_h);
@@ -56,6 +57,8 @@ for i = 1:iterations
 
             x(:, 1) == x_traj(:, end);
     cvx_end
+    t_current = (size(x_traj, 2) - 1) * dt;
+    h_ts = t_current:dt:t_current + (size(x, 2) - 1) * dt;
 
     % execute the first few steps of the trajectory on the "actual" system (nonlinear dynamics)
     x_lin_traj(:, end) = x_traj(:, end);
@@ -67,6 +70,22 @@ for i = 1:iterations
         x_lin_next = f(xstar, ustar) + A * (x_lin_traj(:, end) - xstar) + B * (u(:, j) - ustar);
         x_lin_traj = [x_lin_traj x_lin_next];
     end
+
+    % animation
+    ts = 0:dt:(size(x_traj, 2) - 1) * dt;
+    titles = {'q1','q2','qdot1','qdot2'};
+    tiledlayout(2, 2);
+    for j = 1:4
+        nexttile; cla;
+        hold on; grid on;
+        plot(result.time, result.X(j, :), 'r', 'LineWidth', 2);
+        plot(ts, x_traj(j, :), 'b', 'LineWidth', 2);
+        plot(h_ts, x(j, :), 'g--', 'LineWidth', 2);
+        title(titles(j));
+        legend("Nonlinear TrajOpt", "MPC Trajectory", "MPC Horizon");
+        xlabel('Time (s)');
+    end
+    drawnow
 end
 
 %% plot the results
@@ -75,12 +94,13 @@ figure;
 titles = {'q1','q2','qdot1','qdot2'};
 for i = 1:4
     subplot(2, 2, i);
-    hold on;
+    hold on; grid on;
+    plot(result.time, result.X(i, :), 'r', 'LineWidth', 2);
     plot(ts, x_traj(i, :), 'b', 'LineWidth', 2);
     plot(ts, x_lin_traj(i, :), 'g--', 'LineWidth', 2);
     title(titles(i));
-    legend("Nonlinear Dynamics", "Linearized Dynamics");
-    grid on;
+    legend("Nonlinear TrajOpt", "MPC Trajectory", "MPC Horizon");
+    xlabel('Time (s)');
 end
 
 figure;
