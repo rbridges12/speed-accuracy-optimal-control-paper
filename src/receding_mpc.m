@@ -12,10 +12,10 @@ load('result.mat');
 
 dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
-t_h = 0.5; N_h = round(t_h / dt); % prediction horizon
+t_h = 0.7; N_h = round(t_h / dt); % prediction horizon
 u_steps = 1; % control steps per prediction horizon
-iterations = 150;
-Q = diag([10, 10, 1, 1]); % state cost
+% iterations = 150;
+Q = 0*diag([10, 10, 1, 1]); % state cost
 R = 100 * eye(l); % input cost
 Qf = diag([1000, 1000, 100, 100]); % terminal state cost
 x_init = result.X(:, 1); % initial state
@@ -25,20 +25,20 @@ q_min = 0; q_max = 180; % state bounds
   
 f = @(x, u) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
 
-% define block cost matrices
-HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
-HR = kron(eye(N_h - 1), R);
-
 % MPC loop
 figure;
 x_traj = [x_init];
 x_lin_traj = [x_init];
 u_traj = [zeros(l, 1)];
-for i = 1:iterations
+while N_h >= u_steps
     % linearize dynamics around current state and control
     xstar = x_traj(:, end);
     ustar = u_traj(:, end);
     [A, B] = finite_diff_jacobians(f, xstar, ustar);
+
+    % define block cost matrices
+    HQ = blkdiag(kron(eye(N_h - 1), Q), Qf);
+    HR = kron(eye(N_h - 1), R);
 
     % rollout horizon trajectory using convex optimization
     cvx_begin quiet
@@ -70,6 +70,9 @@ for i = 1:iterations
         x_lin_next = f(xstar, ustar) + A * (x_lin_traj(:, end) - xstar) + B * (u(:, j) - ustar);
         x_lin_traj = [x_lin_traj x_lin_next];
     end
+
+    % recede the horizon by the number of actual steps taken
+    N_h = N_h - u_steps;
 
     % live animation
     ts = 0:dt:(size(x_traj, 2) - 1) * dt;
