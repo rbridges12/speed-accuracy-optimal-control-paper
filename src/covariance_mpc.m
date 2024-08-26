@@ -10,10 +10,11 @@ addpath("./plotFunctions")
 
 load('result.mat');
 
-dt = 0.005; % discretization time stepp
+dt = 0.005; % discretization time step
 n = 4; l = 6; % state and control dimensions
 t_h = 0.2; N_h = round(t_h / dt); % prediction horizon
 u_steps = 1; % control steps per prediction horizon
+disc_interval = 2; % steps between linearization during rollout
 iterations = 150;
 Q = diag([10, 10, 1, 1]); % state cost
 R = 100 * eye(l); % input cost
@@ -25,7 +26,7 @@ P_init = result.Pmat(:, :, 1); % initial covariance
 u_min = 0.001; u_max = 1; % control bounds
 q_min = 0; q_max = 180; % state bounds
   
-f = @(x, u, w) discrete_dynamics(x, u, zeros(6, 1), result.auxdata, dt);
+f = @(x, u, w) discrete_dynamics(x, u, w, result.auxdata, dt);
 Sigma_w = result.Sigma_w;
 
 % define block cost matrices
@@ -38,6 +39,8 @@ x_traj = [x_init];
 P_traj = [P_init];
 x_lin_traj = [x_init];
 u_traj = [zeros(l, 1)];
+% scaled_Sigma_w = Sigma_w;
+u_semistar = ustar;
 for i = 1:iterations
     % linearize dynamics around current state and control
     xstar = x_traj(:, end);
@@ -47,7 +50,7 @@ for i = 1:iterations
     % rollout horizon trajectory using convex optimization
     cvx_begin quiet
         variable x(n, N_h);
-        variable P(n, n, N_h);
+        variable P(n, n, N_h) symmetric;
         variable u(l, N_h - 1);
         x_error = x - repmat(x_target, 1, N_h);
         variances = diag(P(:, :, end));
@@ -55,8 +58,19 @@ for i = 1:iterations
 
         subject to
             for i = 1:N_h - 1
-                x(:, i + 1) == f(xstar, ustar) + A * (x(:, i) - xstar) + B * (u(:, i) - ustar);
-                P(:, :, i + 1) == A * P(:, :, i) * A' + C * Sigma_w * C';
+                if mod(i, disc_interval) == 0
+                    % xstar = x(:, i);
+                    % ustar = u(:, i);
+                    % [A, B, C] = finite_diff_jacobians(f, xstar, ustar, zeros(6, 1));
+                    % C = B * diag(u(:, i));
+                    % scaled_Sigma_w = scaled_sigma_w(Sigma_w, u(:, i));
+                    u_semistar = u(:, i);
+                end
+                x(:, i + 1) == f(xstar, ustar, 0) + A * (x(:, i) - xstar) + B * (u(:, i) - ustar);
+                % P(:, :, i + 1) == A * P(:, :, i) * A' + B * scaled_Sigma_w * B';
+                state_component = A * P(:, :, i) * A';
+                noise_component = covariance_constraint(Sigma_w, B, u_semistar);
+                vec(P(:, :, i + 1)) == vec(state_component) + vec(noise_component);
                 q_min <= x(1:2, i) <= q_max;
                 u_min <= u(:, i) <= u_max;
             end
@@ -67,17 +81,19 @@ for i = 1:iterations
     cvx_end
     t_current = (size(x_traj, 2) - 1) * dt;
     h_ts = t_current:dt:t_current + (size(x, 2) - 1) * dt;
-
+    i
+    
     % execute the first few steps of the trajectory on the "actual" system (nonlinear dynamics)
     x_lin_traj(:, end) = x_traj(:, end);
     for j = 1:u_steps
-        x_next = f(x_traj(:, end), u(:, j));
+        % TODO: add noise to the dynamics
+        x_next = f(x_traj(:, end), u(:, j), 0);
         P_next = A * P_traj(:, :, end) * A' + C * Sigma_w * C';
         x_traj = [x_traj x_next];
         P_traj = cat(3, P_traj, P_next);
         u_traj = [u_traj u(:, j)];
 
-        x_lin_next = f(xstar, ustar) + A * (x_lin_traj(:, end) - xstar) + B * (u(:, j) - ustar);
+        x_lin_next = f(xstar, ustar, 0) + A * (x_lin_traj(:, end) - xstar) + B * (u(:, j) - ustar);
         x_lin_traj = [x_lin_traj x_lin_next];
     end
 

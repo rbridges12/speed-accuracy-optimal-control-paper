@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, EE_init, EE_target)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, q_init, EE_target)
 
     import casadi.*
 
@@ -67,8 +67,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(T > 0);
 
     % constrain initial and final conditions
-    % opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
-    opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
+    opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
+    % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - q_init == 0);
+    % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
     dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
     opti.subject_to(dX_init == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
     % test = 1
@@ -121,10 +122,13 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     sigma_w_sol = diag(wM_sol);
     auxdata.wM = wM_sol;
     auxdata.sigma_w = sigma_w_sol;
+
+    % simulate forward dynamics with initial P to compute covariance matrices
     [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_no_fb(X_init_sol,Pmat_init,u_sol, T_sol,auxdata,functions);
 
     final_cost = sol.value(opti.f);
 
+    % Compute end-effector position and velocity covariances
     for i = 1:N+1
         Pmat_sol_i = Pmat_sol(:,:,i);
         P_q_sol_i = Pmat_sol_i(1:2, 1:2);
@@ -150,6 +154,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     result.Pmat = Pmat_sol;
     result.time = 0:dt_sol:T_sol;
     result.auxdata = auxdata;
+    result.functions = functions;
     result.EEPos = EEPos_sol;
     result.EEVel = EEVel_sol;
     result.P_EEPos = P_EEPos_sol;

@@ -15,8 +15,8 @@ N = 80; % number of discretized nodes
 motor_noise_stddev = 0.036; % motor noise standard deviation
 initial_pos = [0; 0.3];
 target_pos = [-0.1; .45];
-target_radius = 0.023; % 95% confidence interval for final position radius
-target_vel_accuracy = 0.1; % 95% confidence interval for final velocity radius
+target_radius = 0.23; % 95% confidence interval for final position radius
+target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 0.1; % control effort weight
 k_t = 0; % duration weight
 
