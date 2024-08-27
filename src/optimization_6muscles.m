@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, q_init, EE_target)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, X_init, Pmat_init, EE_target)
 
     import casadi.*
 
@@ -25,7 +25,6 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.set_initial(u, 0.01);
     M = opti.variable(nStates,nStates*N);
     opti.set_initial(M, 0.01);
-    Pmat_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
     T = opti.variable(); % Duration
     opti.set_initial(T, T_guess);
 
@@ -67,12 +66,11 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(T > 0);
 
     % constrain initial and final conditions
-    opti.subject_to(X(:,1) - [q_init; 0; 0] == 0);
+    opti.subject_to(X(:,1) - X_init == 0);
     % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - q_init == 0);
     % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
     dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
-    opti.subject_to(dX_init == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
-    % test = 1
+    % opti.subject_to(dX_init == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
 
     % Reaching motion must end in the final reach position
     opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_target == 0);
