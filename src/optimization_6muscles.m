@@ -48,10 +48,14 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
         
         M_i = M(:,(i-1)*nStates + 1:i*nStates);
         
-        DdX_DX_i = functions.f_DdX_DX(X_i,u_i,wM);
-        DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,wM);
-        DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
-        DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
+        % DdX_DX_i = functions.f_DdX_DX(X_i,u_i,wM);
+        % DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,wM);
+        % DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
+        % DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
+        DdX_DX_i = functions.f_DdX_DX(X_i,u_i,0);
+        DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,0);
+        DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,0);
+        DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,0);
         
         DG_DX_i = functions.f_DG_DX(DdX_DX_i, dt);
         DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i, dt);

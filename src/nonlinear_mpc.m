@@ -21,14 +21,19 @@ target_radius = 0.23; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 0.1; % control effort weight
 k_t = 0.1; % duration weight
-Tsim = 0.1;
+Tsim = 0.02;
 
+current_time = 0;
+ts = [];
+ts_plans = [];
+X_plans = [];
+lengths = [];
 x_traj = [];
 u_traj = [];
 P_traj = [];
 ee_traj = [];
 
-for i = 1:6
+for i = 1:50
     result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, P_init, target_pos);
 
     dt = result.time(2) - result.time(1);
@@ -37,18 +42,48 @@ for i = 1:6
     u_sim = u_sim(:, 1:Nsim+1);
     [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_ode(result.X(:,1), result.Pmat(:,:,1) ,result.e_ff', Nsim*dt, Nsim, result.auxdata, result.functions);
 
+    ts_planned = result.time + current_time;
+    ts_plans = [ts_plans; ts_planned];
+    X_plans = cat(3, X_plans, result.X);
+    ts_sim = current_time:dt:current_time + Nsim*dt;
+    ts = [ts, ts_sim];
+    lengths = [lengths, length(ts)];
+    current_time = current_time + Nsim*dt;
     x_traj = [x_traj, X_sim];
     u_traj = [u_traj, u_sim];
     P_traj = cat(3, P_traj, Pmat_sol);
     ee_traj = [ee_traj, EE_ref_sol];
 
-    animate_trajectory(result);
-    if ee_traj(1:2, end) - target_pos < 0.001
+    % animate_trajectory(result);
+
+    if ee_traj(1:2, end) - target_pos < 0.0001
         break
     end
-
     X_init = x_traj(:,end);
     P_init = P_traj(:,:,end);
+end
+
+%%
+for i = 1:length(lengths)
+    titles = {'q1','q2','qdot1','qdot2'};
+    ylabels = {"Shoulder Angle (rad)", "Elbow Angle (rad)", "Shoulder Velocity (rad/s)", "Elbow Velocity (rad/s)"};
+    tiledlayout(2, 2);
+    title("MPC Trajectory");
+    for j = 1:4
+        nexttile; cla;
+        hold on; grid on;
+        % plot(result.time, result.X(j, :), 'r', 'LineWidth', 2);
+        % plot(ts, x_traj(j, :), 'b', 'LineWidth', 2);
+        plot(ts(1:lengths(i)), x_traj(j, 1:lengths(i)), 'b', 'LineWidth', 2);
+        plot(ts_plans(i, :), squeeze(X_plans(j, :, i)), 'g--', 'LineWidth', 2);
+        title(titles(j));
+        xlabel('Time (s)');
+        ylabel(ylabels{j});
+    end
+    % legend("Reference", "Actual Trajectory", "Planned Trajectory", "location", "west outside");
+    legend("Actual Trajectory", "Planned Trajectory", "location", "west outside");
+    drawnow
+    pause(1);
 end
 
 
