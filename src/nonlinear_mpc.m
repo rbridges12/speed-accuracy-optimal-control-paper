@@ -17,13 +17,16 @@ motor_noise_stddev = 0.036; % motor noise standard deviation
 X_init = [0.4061; 2.1532; 0; 0];
 P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 target_pos = [-0.1; .45];
-target_radius = 0.23; % 95% confidence interval for final position radius
+target_radius = 0.1; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 0.1; % control effort weight
 k_t = 0.1; % duration weight
-Tsim = 0.02;
+Tsim = 0.05;
 
 current_time = 0;
+dX_init = zeros(4, 1);
+u_init = zeros(6, 1);
+hot_start = false;
 ts = [];
 ts_plans = [];
 X_plans = [];
@@ -34,10 +37,10 @@ P_traj = [];
 ee_traj = [];
 
 for i = 1:50
-    result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, P_init, target_pos);
+    result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, u_init, hot_start, dX_init, P_init, target_pos);
 
     dt = result.time(2) - result.time(1);
-    Nsim = ceil(Tsim / dt);
+    Nsim = min(ceil(Tsim / dt), N);
     u_sim = result.e_ff';
     u_sim = u_sim(:, 1:Nsim+1);
     [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_ode(result.X(:,1), result.Pmat(:,:,1) ,result.e_ff', Nsim*dt, Nsim, result.auxdata, result.functions);
@@ -61,9 +64,12 @@ for i = 1:50
     end
     X_init = x_traj(:,end);
     P_init = P_traj(:,:,end);
+    u_init = u_traj(:,end);
+    hot_start = true;
+    dX_init = result.functions.f_forwardMusculoskeletalDynamics(X_init, u_init, 0);
 end
 
-%%
+%% plot trajectory
 for i = 1:length(lengths)
     titles = {'q1','q2','qdot1','qdot2'};
     ylabels = {"Shoulder Angle (rad)", "Elbow Angle (rad)", "Shoulder Velocity (rad/s)", "Elbow Velocity (rad/s)"};
@@ -84,6 +90,22 @@ for i = 1:length(lengths)
     legend("Actual Trajectory", "Planned Trajectory", "location", "west outside");
     drawnow
     pause(1);
+end
+
+%% plot control inputs
+titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
+ymax = max(max(u_traj));
+figure;
+for i = 1:6
+    subplot(3,2,i)
+    hold on;
+    stairs(ts, u_traj(i,:), 'r', 'LineWidth', 2);
+    title(titles(i))
+    ylim([-0.1 0.1]);
+    xlim([0 ts(end)]);
+    xlabel('Time (s)');
+    ylabel('Activation');
+    % legend('Planned Trajectory (feedforward)', 'Actual Trajectory (feedback)', 'Actual $\pm$ std dev','Interpreter','latex');
 end
 
 

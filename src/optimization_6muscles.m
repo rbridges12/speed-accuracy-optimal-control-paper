@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, X_init, Pmat_init, EE_target)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, X_init, u_init, hot_start, dX_init, Pmat_init, EE_target)
 
     import casadi.*
 
@@ -23,6 +23,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
     opti.set_initial(u, 0.01);
+    % if (hot_start)
+    %     opti.set_initial(u, u_init);
+    % end
     M = opti.variable(nStates,nStates*N);
     opti.set_initial(M, 0.01);
     T = opti.variable(); % Duration
@@ -48,14 +51,14 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
         
         M_i = M(:,(i-1)*nStates + 1:i*nStates);
         
-        % DdX_DX_i = functions.f_DdX_DX(X_i,u_i,wM);
-        % DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,wM);
-        % DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
-        % DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
-        DdX_DX_i = functions.f_DdX_DX(X_i,u_i,0);
-        DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,0);
-        DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,0);
-        DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,0);
+        DdX_DX_i = functions.f_DdX_DX(X_i,u_i,wM);
+        DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,wM);
+        DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
+        DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
+        % DdX_DX_i = functions.f_DdX_DX(X_i,u_i,0);
+        % DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,0);
+        % DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,0);
+        % DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,0);
         
         DG_DX_i = functions.f_DG_DX(DdX_DX_i, dt);
         DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i, dt);
@@ -73,8 +76,11 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(X(:,1) - X_init == 0);
     % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - q_init == 0);
     % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
-    dX_init = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
-    % opti.subject_to(dX_init == 0); % Initial acceleration equals zero (activations need to fullfill requirement)
+    dX_init_opt = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
+    if (hot_start)
+        opti.subject_to(u(:,1) - u_init == 0);
+    end
+    opti.subject_to(dX_init_opt == dX_init); % Initial acceleration equals zero (activations need to fullfill requirement)
 
     % Reaching motion must end in the final reach position
     opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_target == 0);

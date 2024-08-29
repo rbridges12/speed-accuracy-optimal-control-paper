@@ -1,4 +1,4 @@
-function [X, M, EE_ref, Pmat] = forwardSim_no_fb(X_init,Pmat_init,e_ff, T, N, auxdata,functions)
+function [X, M, EE_ref, Pmat] = forwardSim_ode(X_init,Pmat_init,e_ff, T, N, auxdata,functions)
 import casadi.*;
 Urf = MX.sym('Urf',auxdata.nStates*2);
 X_i = X_init;
@@ -8,14 +8,15 @@ EE_ref(:,1) = [EndEffectorPos(X_i(1:2),auxdata);
                 EndEffectorVel(X_i(1:2),X_i(3:4),auxdata)];
 
 % f_forwardMusculoskeletalDynamics = functions.f_forwardMusculoskeletalDynamics;
-f = @(x, u) forwardMusculoskeletalDynamics_motorNoise(x, u, 0, 0, auxdata);
+R = mvnrnd(zeros(6,1),(auxdata.sigma_w),N+1)';
+f = @(x, u, w) forwardMusculoskeletalDynamics_motorNoise(x, u, 0, w, auxdata);
 nStates = auxdata.nStates;
 dt = T/N;
 for i = 1:N
-    dX_i = f(X_i, e_ff(:,i));
+    dX_i = f(X_i, e_ff(:,i), R(:,i));
     rf = rootfinder('rf','newton',struct('x',Urf,'g', ...
         [Urf(1:nStates) - (X_i + (dX_i + Urf(nStates+1:end))/2*dt);
-        Urf(nStates+1:end) - f(Urf(1:nStates), e_ff(:,i+1))]),struct('abstol',1e-16));
+        Urf(nStates+1:end) - f(Urf(1:nStates), e_ff(:,i+1), R(:,i+1))]),struct('abstol',1e-16));
     solution = rf([X_i;dX_i],[]);
     X_i = full(solution(1:nStates));
     X(:,i+1) = X_i;
