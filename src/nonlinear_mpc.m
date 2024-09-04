@@ -15,18 +15,24 @@ N = 40; % number of discretized nodes
 motor_noise_stddev = 0.036; % motor noise standard deviation
 % initial_pos = [0.0; 0.3];
 X_init = [0.4061; 2.1532; 0; 0];
-P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
+P_0 = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 target_pos = [-0.1; .45];
-target_radius = 0.1; % 95% confidence interval for final position radius
+target_radius = 0.04; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
-k_u = 0.1; % control effort weight
-k_t = 0.1; % duration weight
-Tsim = 0.05;
+k_u = 0.0; % control effort weight
+k_t = 10; % duration weight
+Tsim = 0.1;
 
+P_init = P_0;
 current_time = 0;
 dX_init = zeros(4, 1);
 u_init = zeros(6, 1);
 hot_start = false;
+hs_X = [];
+hs_u = [];
+hs_M = [];
+hs_T = 0;
+max_iter = 2000;
 ts = [];
 ts_plans = [];
 X_plans = [];
@@ -35,39 +41,63 @@ x_traj = [];
 u_traj = [];
 P_traj = [];
 ee_traj = [];
+P_EEPos = [];
+P_EEVel = [];
 
 for i = 1:50
-    result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, u_init, hot_start, dX_init, P_init, target_pos);
+    result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, u_init, dX_init, P_init, target_pos, hot_start, hs_X, hs_u, hs_M, hs_T, max_iter);
 
     dt = result.time(2) - result.time(1);
     Nsim = min(ceil(Tsim / dt), N);
     u_sim = result.e_ff';
     u_sim = u_sim(:, 1:Nsim+1);
-    [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_ode(result.X(:,1), result.Pmat(:,:,1) ,result.e_ff', Nsim*dt, Nsim, result.auxdata, result.functions);
+    [X_sim, ~, EE_ref_sol, Pmat_sol] = forwardSim_ode(result.X(:,1), result.Pmat(:,:,1) ,result.e_ff', Nsim*dt, Nsim, motor_noise_stddev, result.auxdata, result.functions);
 
     ts_planned = result.time + current_time;
     ts_plans = [ts_plans; ts_planned];
     X_plans = cat(3, X_plans, result.X);
     ts_sim = current_time:dt:current_time + Nsim*dt;
-    ts = [ts, ts_sim];
+    ts = [ts, ts_sim(2:end)];
     lengths = [lengths, length(ts)];
     current_time = current_time + Nsim*dt;
-    x_traj = [x_traj, X_sim];
-    u_traj = [u_traj, u_sim];
-    P_traj = cat(3, P_traj, Pmat_sol);
-    ee_traj = [ee_traj, EE_ref_sol];
+    x_traj = [x_traj, X_sim(:, 2:end)];
+    u_traj = [u_traj, u_sim(:, 2:end)];
+    P_traj = cat(3, P_traj, Pmat_sol(:, :, 2:end));
+    ee_traj = [ee_traj, EE_ref_sol(:, 2:end)];
+    P_EEPos = [P_EEPos, result.P_EEPos(:, 2:Nsim+1)];
+    P_EEVel = [P_EEVel, result.P_EEVel(:, 2:Nsim+1)];
 
     % animate_trajectory(result);
-
-    if ee_traj(1:2, end) - target_pos < 0.0001
+    if abs(ee_traj(:, end) - [target_pos; 0; 0]) < [target_radius; target_radius; target_vel_accuracy; target_vel_accuracy]
         break
     end
+
     X_init = x_traj(:,end);
-    P_init = P_traj(:,:,end);
+    P_init = P_0;
     u_init = u_traj(:,end);
     hot_start = true;
+    max_iter = 1000;
+    hs_X = result.X;
+    hs_u = result.e_ff';
+    hs_M = result.M;
+    hs_T = result.time(end);
     dX_init = result.functions.f_forwardMusculoskeletalDynamics(X_init, u_init, 0);
 end
+
+result.e_ff = u_traj';
+result.X = x_traj;
+result.q = x_traj(1:2, :)';
+result.qdot = x_traj(3:4, :)';
+result.Pmat = P_traj;
+result.time = ts;
+result.auxdata = result.auxdata;
+result.functions = result.functions;
+result.EEPos = ee_traj(1:2, :)';
+result.EEVel = ee_traj(3:4, :)';
+result.P_EEPos = P_EEPos;
+result.P_EEVel = P_EEVel;
+
+ts(end)
 
 %% plot trajectory
 for i = 1:length(lengths)
@@ -135,4 +165,5 @@ duration = result.time(end)
 distributions_test(result);
 
 %% save data
-save('result.mat', 'result');
+fname = sprintf("result_%f_%f_%f_%f_%s.mat", target_radius, target_vel_accuracy, k_u, k_t, datestr(now, 'dd-HH-MM'));
+save(fname, 'result');

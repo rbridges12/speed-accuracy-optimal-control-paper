@@ -1,4 +1,4 @@
-function [X, M, EE_ref, Pmat] = forwardSim_ode(X_init,Pmat_init,e_ff, T, N, auxdata,functions)
+function [X, M, EE_ref, Pmat] = forwardSim_ode(X_init,Pmat_init,e_ff, T, N, wM_std, auxdata,functions)
 import casadi.*;
 Urf = MX.sym('Urf',auxdata.nStates*2);
 X_i = X_init;
@@ -8,10 +8,11 @@ EE_ref(:,1) = [EndEffectorPos(X_i(1:2),auxdata);
                 EndEffectorVel(X_i(1:2),X_i(3:4),auxdata)];
 
 % f_forwardMusculoskeletalDynamics = functions.f_forwardMusculoskeletalDynamics;
-R = mvnrnd(zeros(6,1),(auxdata.sigma_w),N+1)';
+dt = T/N;
+sigma_w = diag((wM_std*ones(auxdata.nMotorNoises,1)).^2)/dt;
+R = mvnrnd(zeros(6,1),(sigma_w),N+1)';
 f = @(x, u, w) forwardMusculoskeletalDynamics_motorNoise(x, u, 0, w, auxdata);
 nStates = auxdata.nStates;
-dt = T/N;
 for i = 1:N
     dX_i = f(X_i, e_ff(:,i), R(:,i));
     rf = rootfinder('rf','newton',struct('x',Urf,'g', ...

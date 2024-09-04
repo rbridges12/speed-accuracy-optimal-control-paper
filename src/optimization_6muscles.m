@@ -1,4 +1,4 @@
-function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, X_init, u_init, hot_start, dX_init, Pmat_init, EE_target)
+function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u, k_t, X_init, u_init, dX_init, Pmat_init, EE_target, hot_start, hot_start_X, hot_start_u, hot_start_M, hot_start_T, max_iter)
 
     import casadi.*
 
@@ -17,18 +17,25 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti = casadi.Opti(); % Create opti instance
 
     % create optimization variables and provide initial guesses
-    T_guess = 0.8;
-    X_guess = zeros(nStates,N+1);
+    if (hot_start)
+        T_guess = hot_start_T;
+        X_guess = hot_start_X;
+        u_guess = hot_start_u;
+        M_guess = hot_start_M;
+    else
+        T_guess = 0.8;
+        X_guess = zeros(nStates,N+1);
+        u_guess = 0.01;
+        M_guess = 0.01;
+    end
+
     X = opti.variable(nStates,N+1);
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
-    opti.set_initial(u, 0.01);
-    % if (hot_start)
-    %     opti.set_initial(u, u_init);
-    % end
+    opti.set_initial(u, u_guess);
     M = opti.variable(nStates,nStates*N);
-    opti.set_initial(M, 0.01);
-    T = opti.variable(); % Duration
+    opti.set_initial(M, M_guess);
+    T = opti.variable();
     opti.set_initial(T, T_guess);
 
     dt = T/N;
@@ -116,7 +123,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     optionssol.ipopt.tol = 1e-3;
     optionssol.ipopt.dual_inf_tol = 3e-4;
     optionssol.ipopt.constr_viol_tol = 1e-7;
-    optionssol.ipopt.max_iter = 1000;
+    optionssol.ipopt.max_iter = max_iter;
     optionssol.ipopt.hessian_approximation = 'limited-memory';
     opti.solver('ipopt',optionssol);
 
