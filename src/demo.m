@@ -11,46 +11,52 @@ addpath("./Integrator")
 addpath("./plotFunctions")
 
 N = 40; % number of discretized nodes
+Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 % initial_pos = [0.0; 0.3];
-X_init = [0.4061; 2.1532; 0; 0];
-target_pos = [-0.1; .45];
-target_radius = 0.04; % 95% confidence interval for final position radius
+% X_init = [0.4061; 2.1532; 0; 0]; % short
+X_init = [0.3; 1.0; 0; 0]; % long
+% target_pos = [-0.1; .45]; % short
+target_pos = [-0.21; .50]; % long
+target_radius = 0.03; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 10; % duration weight
+k_t = 5; % duration weight
 
 %% velocity profiling
 max_vels = [];
 max_vel_times = [];
+times = [];
 figure
 hold on
+xlabel('Normalized Time')
+ylabel('Normalized Velocity')
 for i = 1:5
-    result = nonlinear_mpc(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
+    result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
     EE_vel = result.EEVel;
     norm_vel = vecnorm(EE_vel,2,2);
     [max_vel, max_vel_i] = max(norm_vel);
     max_vel_times = [max_vel_times, result.time(max_vel_i) / max(result.time)];
     max_vels = [max_vels, max_vel];
+    times = [times, result.time(end)];
 
     normalized_vel = norm_vel./max(norm_vel);
     normalized_time = result.time./max(result.time);
 
     plot(normalized_time, normalized_vel, 'LineWidth', 2)
     % plot(normalized_time, norm_vel, 'LineWidth', 2)
+    movement_distance = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata));
+    movement_time = mean(times);
+    % title('Normalized Velocity of End Effector')
+    t = sprintf("ku: %f, kt: %f, radius: %f, distance: %f, time: %f", k_u, k_t, target_radius, movement_distance, movement_time);
+    title(t)
 end
-movement_distance = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata));
-movement_time = result.time(end);
-% title('Normalized Velocity of End Effector')
-t = sprintf("ku: %f, kt: %f, radius: %f, distance: %f, time: %f", k_u, k_t, target_radius, movement_distance, movement_time);
-title(t)
-xlabel('Normalized Time')
-ylabel('Normalized Velocity')
+hold off
 avg_max_vel = mean(max_vels)
 avg_max_vel_time = mean(max_vel_times)
 
 %% single MPC run
-result = nonlinear_mpc(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
+result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
 
 %% plot MPC trajectory
 for i = 1:length(lengths)

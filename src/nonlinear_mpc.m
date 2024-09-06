@@ -1,6 +1,5 @@
-function result = nonlinear_mpc(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos)
-    Tsim = 0.1;
-    max_iter_cold_start = 2000;
+function result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos)
+    max_iter_cold_start = 3000;
     max_rollouts = 50;
     P_0 = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 
@@ -57,7 +56,7 @@ function result = nonlinear_mpc(N, motor_noise_stddev, target_radius, target_vel
         P_init = P_0;
         u_init = u_traj(:,end);
         hot_start = true;
-        max_iter = 1000;
+        max_iter = 2000;
         hs_X = result.X;
         hs_u = result.e_ff';
         hs_M = result.M;
