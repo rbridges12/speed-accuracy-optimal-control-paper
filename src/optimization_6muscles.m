@@ -119,6 +119,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
 
     % Set solver options
     % optionssol.ipopt.nlp_scaling_method = 'gradient-based';
+    optionssol.ipopt.print_level = 0;
     optionssol.ipopt.linear_solver = 'mumps';
     optionssol.ipopt.tol = 1e-3;
     optionssol.ipopt.dual_inf_tol = 3e-4;
