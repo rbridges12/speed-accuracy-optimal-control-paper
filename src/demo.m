@@ -90,10 +90,16 @@ X_init = [0.4061; 2.1532; 0; 0];
 P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 % initial_pos = q_init;
 target_pos = [-0.1; .45];
-target_radius = 0.05; % 95% confidence interval for final position radius
-target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
-k_u = 0.1; % control effort weight
-k_t = 0.1; % duration weight
+target_radius = 0.3; % 95% confidence interval for final position radius
+target_vel_accuracy = 0.4; % 95% confidence interval for final velocity radius
+k_u = 0.05; % control effort weight
+k_t = 1.0; % duration weight
+
+% ee_init_x = [0,0]
+% ee_init_y = [0,.3]-[.1,.6]
+% k_u = .05, k_t = 1
+% r = .3, .4
+
 
 result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, P_init, target_pos);
 animate_trajectory(result);

@@ -11,13 +11,11 @@ addpath("./Integrator")
 addpath("./plotFunctions")
 
 N = 40; % number of discretized nodes
-Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
 k_t = 10; % duration weight
-% filename = "fitts_law_trials.mat";
-filename = "fitts_law_trials_dfw.mat";
+filename = "fitts_law_trials_single.mat";
 
 % cell array to store each data point
 % each row is: [q_init (1-2), target_pos (3-4), target_radius (5), distance (6), time (7), failures (8), max_vel (9), max_vel_time (10)]
@@ -26,7 +24,6 @@ try
 catch
     trials = {};
 end
-% initial_pos = [0.0; 0.3];
 X_init = [0.4061; 2.1532; 0; 0]; % short
 % X_init = [0.3; 1.0; 0; 0]; % long
 target_pos = [-0.1; .45]; % short
@@ -35,10 +32,6 @@ target_pos = [-0.1; .45]; % short
 target_radii = [0.015, 0.02, 0.03, 0.05, 0.06, 0.07, 0.08, 0.1];
 q_inits = [[0.4061; 2.1532], [0.35; 2], [0.3; 1.5], [0.3; 2.5]];
 colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w'];
-% times = [];w
-% distances = [];
-% radii = [];
-% legend_labels = {};
 num_trials = 5;
 %%
 
@@ -56,7 +49,9 @@ for i = 1:length(target_radii)
         if trial_already_run(trials, X_init, target_pos, target_radius)
             continue
         end
-        color = colors(i);
+        w&1..to him so [didn't just Norway+a1m' ...
+            ['r__rovers__intdefinitely' ...
+            kkwroseauton'iwhatcolor = colors(i);1iwyou]]
         max_vels = [];
         max_vel_times = [];
         trial_times = [];
@@ -65,7 +60,8 @@ for i = 1:length(target_radii)
             msg = sprintf("Running trial: i=%d, k=%d, j=%d", i, k, j);
             disp(msg);
             try
-                result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
+                % result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
+                result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, 0, 0, 0, target_pos, false, [], [], [], 0, 3000);
                 EE_vel = result.EEVel;
                 norm_vel = vecnorm(EE_vel,2,2);
                 [max_vel, max_vel_i] = max(norm_vel);
