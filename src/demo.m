@@ -83,25 +83,57 @@ end
 
 %% feedforward trajectory optimization
 % set model and optimization parameters
-N = 80; % number of discretized nodes
+N = 40; % number of discretized nodes
 motor_noise_stddev = 0.036; % motor noise standard deviation
-% initial_pos = [-0.2; 0.5];
-X_init = [0.4061; 2.1532; 0; 0];
+X_init = [0.2; 2; 0; 0];
+% X_init = [ik_opt([0;0]); 0; 0];
 P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
-% initial_pos = q_init;
-target_pos = [-0.1; .45];
-target_radius = 0.3; % 95% confidence interval for final position radius
-target_vel_accuracy = 0.4; % 95% confidence interval for final velocity radius
-k_u = 0.05; % control effort weight
-k_t = 1.0; % duration weight
+target_pos = [0.1; .6];
+% target_pos = [0;.3];
+target_radius = 0.05; % 95% confidence interval for final position radius
+target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
+k_u = 1; % control effort weight
+k_t = 1; % duration weight
 
 % ee_init_x = [0,0]
 % ee_init_y = [0,.3]-[.1,.6]
 % k_u = .05, k_t = 1
 % r = .3, .4
+%slow {[0.2 2 0.1000 0.6000 0.0500 ku=1 kt=1]}
+%fast [     0.3500 2 0.1000 0.5000 0.1000 0.1699 0.2521 0 1.0458 0.6750 ku=1 kt=20]}
 
+result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, 0, 0, P_init, target_pos, false, [], [], [], 0, 3000);
 
-result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, P_init, target_pos);
+%%
+    result_fast = optimization_6muscles(N, motor_noise_stddev, 0.1, target_vel_accuracy, 1, 20, [0.35; 2; 0; 0], 0, 0, P_init, [0.1; 0.5], false, [], [], [], 0, 3000);
+    EE_vel = result.EEVel;
+    norm_vel = vecnorm(EE_vel,2,2);
+    [max_vel, max_vel_i] = max(norm_vel);
+    max_vel_time = result.time(max_vel_i) / max(result.time);
+
+    normalized_vel = norm_vel./max(norm_vel);
+    normalized_time = result.time./max(result.time);
+
+    EE_vel = result_fast.EEVel;
+    norm_vel = vecnorm(EE_vel,2,2);
+    [fast_max_vel, fast_max_vel_i] = max(norm_vel);
+    max_vel_time_fast = result_fast.time(fast_max_vel_i) / max(result_fast.time);
+
+    fast_normalized_vel = norm_vel./max(norm_vel);
+    fast_normalized_time = result_fast.time./max(result_fast.time);
+
+    figure
+    grid on
+    hold on
+    plot(normalized_time, normalized_vel, 'LineWidth', 2)
+    plot(fast_normalized_time, fast_normalized_vel, 'LineWidth', 2)
+    % movement_distance = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata));
+    % movement_time = mean(times);
+    title('Normalized Velocity of End Effector')
+    legend("slow, max vel = " + max_vel + " at " + max_vel_time, "fast, max vel = " + fast_max_vel + " at " + max_vel_time_fast)
+    % title(t)
+
+%%
 animate_trajectory(result);
 
 %% print covariances
