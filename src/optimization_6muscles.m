@@ -33,8 +33,9 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.set_initial(X, X_guess);
     u = opti.variable(nControls, N+1);
     opti.set_initial(u, u_guess);
-    M = opti.variable(nStates,nStates*N);
-    opti.set_initial(M, M_guess);
+    % M = opti.variable(nStates,nStates*N);
+    % opti.set_initial(M, M_guess);
+    M = ones(nStates,nStates*N) * M_guess;
     T = opti.variable();
     opti.set_initial(T, T_guess);
 
@@ -62,16 +63,12 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
         DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,wM);
         DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,wM);
         DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,wM);
-        % DdX_DX_i = functions.f_DdX_DX(X_i,u_i,0);
-        % DdZ_DX_i = functions.f_DdX_DX(X_i_plus,u_i_plus,0);
-        % DdX_Dw_i = functions.f_DdX_Dw(X_i,u_i,0);
-        % DdZ_Dw_i = functions.f_DdX_Dw(X_i_plus,u_i_plus,0);
         
         DG_DX_i = functions.f_DG_DX(DdX_DX_i, dt);
         DG_DZ_i = functions.f_DG_DZ(DdZ_DX_i, dt);
         DG_DW_i = functions.f_DG_DW(DdX_Dw_i, DdZ_Dw_i, dt);
         
-        opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
+        % opti.subject_to(M_i*DG_DZ_i - eye(nStates) == 0);
         
         Pmat_i = M_i*(DG_DX_i*Pmat_i*DG_DX_i' + DG_DW_i*sigma_w*DG_DW_i')*M_i';
     end
@@ -81,16 +78,12 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
 
     % constrain initial and final conditions
     opti.subject_to(X(:,1) - X_init == 0);
-    % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - q_init == 0);
-    % opti.subject_to(functions.f_EEPos(X(1:2, 1)) - EE_init == 0);
     dX_init_opt = functions.f_forwardMusculoskeletalDynamics(X(:, 1), u(:, 1), 0);
-    if (hot_start)
-        opti.subject_to(u(:,1) - u_init == 0);
-    end
     opti.subject_to(dX_init_opt == dX_init); % Initial acceleration equals zero (activations need to fullfill requirement)
 
     % Reaching motion must end in the final reach position
-    opti.subject_to(functions.f_EEPos(X(1:2,end)) - EE_target == 0);
+    opti.subject_to(norm(functions.f_EEPos(X(1:2,end)) - EE_target) <= pos_conf_95);
+    % opti.subject_to(norm(functions.f_EEVel(X(1:2,end),X(3:4,end))) <= vel_conf_95);
 
     % Final joint velocity and acceleration equals zero (activations balanced)
     dX_end = functions.f_forwardMusculoskeletalDynamics(X(:,end),u(:,end),0);
@@ -98,16 +91,16 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
 
     
     % Constrain end point position and velocity variance in x and y
-    P_q_final = Pmat_i(1:2, 1:2);
-    P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
-    P_q_qdot_final = Pmat_i;
-    P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
-    pos_variance = (pos_conf_95/2)^2;
-    vel_variance = (vel_conf_95/2)^2;
-    opti.subject_to(P_EEPos_final(1,1) < pos_variance);
-    opti.subject_to(P_EEPos_final(2,2) < pos_variance);
-    opti.subject_to(P_EEVel_final(1,1) < vel_variance);
-    opti.subject_to(P_EEVel_final(2,2) < vel_variance);
+    % P_q_final = Pmat_i(1:2, 1:2);
+    % P_EEPos_final = functions.f_P_EEPos(X(1:2,end),P_q_final);
+    % P_q_qdot_final = Pmat_i;
+    % P_EEVel_final = functions.f_P_EEVel(X(1:2,end),X(3:4,end),P_q_qdot_final);
+    % pos_variance = (pos_conf_95/2)^2;
+    % vel_variance = (vel_conf_95/2)^2;
+    % opti.subject_to(P_EEPos_final(1,1) < pos_variance);
+    % opti.subject_to(P_EEPos_final(2,2) < pos_variance);
+    % opti.subject_to(P_EEVel_final(1,1) < vel_variance);
+    % opti.subject_to(P_EEVel_final(2,2) < vel_variance);
 
     % constrain activations and joint angle limits
     opti.subject_to(0.001 < u(:) < 1);
@@ -166,7 +159,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     result.X = X_sim;
     result.q = X_sol(1:2,:)';
     result.qdot = X_sol(3:4,:)';
-    result.M = sol.value(M);
+    % result.M = sol.value(M);
+    result.M = M;
     result.Pmat = Pmat_sol;
     result.time = 0:dt_sol:T_sol;
     result.auxdata = auxdata;

@@ -10,17 +10,17 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-% filename = "fitts_law_strict_ethans.mat";
-% type = "single";
-filename = "fitts_law_mpc_compare.mat";
-type = "mpc";
+filename = "fitts_law_no_noise_cost3.mat";
+type = "single";
+% filename = "fitts_law_mpc_compare.mat";
+% type = "mpc";
 
 N = 40; % number of discretized nodes
 Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 20; % duration weight
+k_t = 2; % duration weight
 color = "r";
 num_trials = 1;
 if type == "mpc"
@@ -136,8 +136,11 @@ a = x(1);
 b = x(2);
 fit_times = a + b * difficulties;
 
+mdl = fitlm(difficulties, times);
+rsq = mdl.Rsquared.Ordinary;
+
 figure;
-title("Fitts' Law Fit, a = " + a + ", b = " + b);
+title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
 xlabel('Difficulty Index');
 ylabel('Movement Duration (s)');
 hold on; grid on;
