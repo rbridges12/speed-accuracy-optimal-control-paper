@@ -15,13 +15,16 @@ Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 % initial_pos = [0.0; 0.3];
 % X_init = [0.4061; 2.1532; 0; 0]; % short
-X_init = [0.3; 1.0; 0; 0]; % long
-% target_pos = [-0.1; .45]; % short
-target_pos = [-0.21; .50]; % long
-target_radius = 0.03; % 95% confidence interval for final position radius
+X_init = [0.2; 2; 0; 0];
+% X_init = [ik_opt([0;0]); 0; 0];
+P_0 = diag([1e-4; 1e-4; 1e-7; 1e-7]);
+target_pos = [0.1; .6];
+% target_pos = [0;.3];
+target_radius = 0.05; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 5; % duration weight
+k_t = 1; % duration weight
+color = 'b';
 
 %% velocity profiling
 max_vels = [];
@@ -43,13 +46,13 @@ for i = 1:5
     normalized_vel = norm_vel./max(norm_vel);
     normalized_time = result.time./max(result.time);
 
-    plot(normalized_time, normalized_vel, 'LineWidth', 2)
+    plot(normalized_time, normalized_vel, color, 'LineWidth', 2)
     % plot(normalized_time, norm_vel, 'LineWidth', 2)
     movement_distance = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata));
     movement_time = mean(times);
-    % title('Normalized Velocity of End Effector')
-    t = sprintf("ku: %f, kt: %f, radius: %f, distance: %f, time: %f", k_u, k_t, target_radius, movement_distance, movement_time);
-    title(t)
+    title('Normalized Velocity of End Effector')
+    % t = sprintf("ku: %f, kt: %f, radius: %f, distance: %f, time: %f", k_u, k_t, target_radius, movement_distance, movement_time);
+    % title(t)
 end
 hold off
 avg_max_vel = mean(max_vels)
