@@ -10,17 +10,17 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-% filename = "fitts_law_strict_ethans.mat";
-% type = "single";
-filename = "fitts_law_mpc_compare.mat";
-type = "mpc";
+filename = "fitts_law_ethan_real_single_weight1.mat";
+type = "single";
+% filename = "fitts_law_ethans_real.mat";
+% type = "mpc";
 
 N = 40; % number of discretized nodes
 Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 20; % duration weight
+k_t = 5; % duration weight
 color = "r";
 num_trials = 1;
 if type == "mpc"
@@ -44,10 +44,9 @@ end
 % target_pos = [-0.21; .50]; % long
 % target_radius = 0.03; % 95% confidence interval for final position radius
 P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
-target_radii = [0.015, 0.02, 0.03, 0.05, 0.06, 0.07, 0.08, 0.1];
-q_inits = [[0.35; 2], [0.3; 1.5], [0.3; 2.5], [ik_opt([0; 0])]];
-target_ps = [[0; 0.3], [0; 0.4], [0; 0.5], [0; 0.6], [0.1; 0.3], [0.1; 0.5], [0.1; 0.6]];
-%q_inits = [ik_opt([0; 0])];
+target_radii = [0.03, 0.04];
+q_inits = [ik_opt([0; .3])];
+target_ps = [[0; 0.35], [0; 0.36], [0; 0.38], [0; 0.4], [0; 0.45], [0; 0.5], [0; 0.55], [0; 0.6], [0.1; 0.35], [0.1; 0.36], [0.1; 0.38], [0.1; 0.4], [0.1; 0.45], [0.1; 0.5], [0.1; 0.55], [0.1; 0.6]];
 
 %%
 figure
@@ -135,9 +134,11 @@ x = A\b;
 a = x(1);
 b = x(2);
 fit_times = a + b * difficulties;
+mdl = fitlm(difficulties, times);
+rsq = mdl.Rsquared.Ordinary;
 
 figure;
-title("Fitts' Law Fit, a = " + a + ", b = " + b);
+title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
 xlabel('Difficulty Index');
 ylabel('Movement Duration (s)');
 hold on; grid on;
