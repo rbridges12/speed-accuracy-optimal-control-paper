@@ -82,7 +82,7 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(dX_init_opt == dX_init); % Initial acceleration equals zero (activations need to fullfill requirement)
 
     % Reaching motion must end in the final reach position
-    opti.subject_to(norm(functions.f_EEPos(X(1:2,end)) - EE_target) <= pos_conf_95);
+    % opti.subject_to(norm(functions.f_EEPos(X(1:2,end)) - EE_target) <= pos_conf_95);
     % opti.subject_to(norm(functions.f_EEVel(X(1:2,end),X(3:4,end))) <= vel_conf_95);
 
     % Final joint velocity and acceleration equals zero (activations balanced)
@@ -107,14 +107,17 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(0 < X(1,:) < pi);
     opti.subject_to(0 < X(2,:) < pi);
 
-    % final_ee_error = norm(functions.f_EEPos(X(1:2,end)) - EE_target);
-    opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T + final_ee_error);
+    final_ee_error = norm(functions.f_EEPos(X(1:2,end)) - EE_target);
+    % k_e = 1e2 + 1e5 * (final_ee_error - pos_conf_95);
+    k_e = 1e3;
+    opti.minimize(k_u*1e3*(sumsqr(u)/2) + k_t*T + k_e*final_ee_error);
+    % opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T);
 
     % Set solver options
     % optionssol.ipopt.nlp_scaling_method = 'gradient-based';
-    optionssol.ipopt.print_level = 0;
+    % optionssol.ipopt.print_level = 0;
     optionssol.ipopt.linear_solver = 'mumps';
-    optionssol.ipopt.tol = 1e-3;
+    optionssol.ipopt.tol = 1e-5;
     optionssol.ipopt.dual_inf_tol = 3e-4;
     optionssol.ipopt.constr_viol_tol = 1e-7;
     optionssol.ipopt.max_iter = max_iter;

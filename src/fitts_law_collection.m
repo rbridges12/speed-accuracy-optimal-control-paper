@@ -10,9 +10,9 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-filename = "fitts_law_no_noise_cost3.mat";
+filename = "fitts_law_no_noise_cost2.mat";
 type = "single";
-% filename = "fitts_law_mpc_compare.mat";
+% filename = "fitts_law_ethans_real_weight1.mat";
 % type = "mpc";
 
 N = 40; % number of discretized nodes
@@ -20,7 +20,7 @@ Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 2; % duration weight
+k_t = 40; % duration weight
 color = "r";
 num_trials = 1;
 if type == "mpc"
@@ -35,19 +35,12 @@ try
 catch
     trials = {};
 end
-% X_init = [0.4061; 2.1532; 0; 0]; % short
-% X_init = [ik_opt([0; 0]); 0; 0];
-% X_init = [0.3; 1.0; 0; 0]; % long
-% target_pos = [-0.1; .45]; % short
-% target_pos = [0; 0.3]; % short
-% target_pos = [0.1; 0.3]; % short
-% target_pos = [-0.21; .50]; % long
-% target_radius = 0.03; % 95% confidence interval for final position radius
-P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
-target_radii = [0.015, 0.02, 0.03, 0.05, 0.06, 0.07, 0.08, 0.1];
-q_inits = [[0.35; 2], [0.3; 1.5], [0.3; 2.5], [ik_opt([0; 0])]];
-target_ps = [[0; 0.3], [0; 0.4], [0; 0.5], [0; 0.6], [0.1; 0.3], [0.1; 0.5], [0.1; 0.6]];
-%q_inits = [ik_opt([0; 0])];
+P_init = diag([2e-4; 1e-4; 1e-7; 1e-7]);
+target_radii = [0.03, 0.04];
+q_inits = [ik_opt([0; .3])];
+target_ps = [[0; 0.35], [0; 0.36], [0; 0.38], [0; 0.4], [0; 0.45], [0; 0.5], [0; 0.55], [0; 0.6], [0.1; 0.35], [0.1; 0.36], [0.1; 0.38], [0.1; 0.4], [0.1; 0.45], [0.1; 0.5], [0.1; 0.55], [0.1; 0.6]];
+% target_ps = [zeros(1, 25) ones(1, 25) * 0.1;
+%             linspace(0.35, 0.6, 25) linspace(0.35, 0.6, 25)];
 
 %%
 figure
@@ -106,7 +99,7 @@ hold off
 %% generate Fitts' Law plot
 %  extract data from cell array
 load(filename);
-%load("fitts_law_trials_dfw.mat")
+% load("good_fitts_law_trials.mat")
 radii = [];
 distances = [];
 times = [];
@@ -135,7 +128,6 @@ x = A\b;
 a = x(1);
 b = x(2);
 fit_times = a + b * difficulties;
-
 mdl = fitlm(difficulties, times);
 rsq = mdl.Rsquared.Ordinary;
 
@@ -144,6 +136,35 @@ title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
 xlabel('Difficulty Index');
 ylabel('Movement Duration (s)');
 hold on; grid on;
+% plot difficulty index points vs time, points with different radii have different colors
+% radii_colors = [1 0 0;
+%                 0 1 0;
+%                 0 0 1;
+%                 0.83 0.14 0.14;
+%                 0.93 0.69 0.13;
+%                 0.5 0.5 0.5;
+%                 0.13 0.55 0.13;
+%                 0.03 0.38 0.38;
+%                 0.55 0.27 0.07;
+%                 0.55 0.27 0.55];
+% unique_radii = unique(radii);
+% legend_items = {};
+% already_in_legend = zeros(1, length(unique_radii));
+% for i = 1:length(difficulties)
+%     difficulty = difficulties(i);
+%     time = times(i);
+%     radius = radii(i);
+%     color = radii_colors(radius == unique_radii, :);
+%     plot(difficulty, time, 'o', 'MarkerEdgeColor', color, 'MarkerFaceColor', color);
+%     if already_in_legend(radius == unique_radii) == 0
+%         legend_items = [legend_items, sprintf("r = %.2f", radius)];
+%         already_in_legend(radius == unique_radii) = 1;
+%     else 
+%         legend_items = [legend_items, ''];
+%     end
+% end
+% legend(legend_items, 'location', 'northwest');
+
 plot(difficulties, times, 'bo');
 plot(difficulties, fit_times, 'r', 'LineWidth', 2);
 legend('Data', 'Fitts'' Law Fit', 'location', 'northwest');
