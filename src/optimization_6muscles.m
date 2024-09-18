@@ -107,8 +107,8 @@ function result = optimization_6muscles(N, wM_std, pos_conf_95, vel_conf_95, k_u
     opti.subject_to(0 < X(1,:) < pi);
     opti.subject_to(0 < X(2,:) < pi);
 
-    % minimize weighted combination of energy usage (integral of activations) and duration
-    opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T);
+    % final_ee_error = norm(functions.f_EEPos(X(1:2,end)) - EE_target);
+    opti.minimize(k_u*1e3*(sumsqr(u)/2)*dt + k_t*T + final_ee_error);
 
     % Set solver options
     % optionssol.ipopt.nlp_scaling_method = 'gradient-based';
