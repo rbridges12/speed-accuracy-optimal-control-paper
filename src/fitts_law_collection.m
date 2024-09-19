@@ -10,10 +10,10 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-filename = "fitts_law_ethan_real_single_more_rad.mat";
-type = "single";
-% filename = "fitts_law_ethans_real_weight1.mat";
-% type = "mpc";
+% filename = "fitts_law_ethan_real_single_more_rad.mat";
+% type = "single";
+filename = "fitts_law_ethan_real_mpc_more_rad.mat";
+type = "mpc";
 
 N = 40; % number of discretized nodes
 Tsim = 0.1;
@@ -111,6 +111,19 @@ for i = 1:length(trials)
     if failures >= num_trials || difficulty < 0 || time > 1
         out = sprintf("skipped trial: failures=%d, difficulty=%f, time=%f, radius=%f, q_init=[%f, %f], target_pos=[%f, %f]", failures, difficulty, time, trial(5), trial(1), trial(2), trial(3), trial(4));
         disp(out);
+        continue
+    end
+    % if target pos not in current list of target positions, skip
+    target_pos = trial(3:4);
+    found = false;
+    for j = 1:size(target_ps, 2)
+        if all(target_pos == target_ps(:,j)')
+            found = true;
+            break
+        end
+    end
+    if ~found
+        target_pos
         continue
     end
     radii = [radii, trial(5)];
