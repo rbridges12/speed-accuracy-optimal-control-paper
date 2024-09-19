@@ -10,7 +10,7 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-filename = "fitts_law_ethan_real_single_weight2.mat";
+filename = "fitts_law_ethan_real_single_more_rad.mat";
 type = "single";
 % filename = "fitts_law_ethans_real_weight1.mat";
 % type = "mpc";
@@ -36,11 +36,11 @@ catch
     trials = {};
 end
 P_init = diag([2e-4; 1e-4; 1e-7; 1e-7]);
-target_radii = [0.03, 0.04];
+target_radii = [0.03, 0.033, 0.035, 0.038, 0.04];
 q_inits = [ik_opt([0; .3])];
-% target_ps = [[0; 0.35], [0; 0.36], [0; 0.38], [0; 0.4], [0; 0.45], [0; 0.5], [0; 0.55], [0; 0.6], [0.1; 0.35], [0.1; 0.36], [0.1; 0.38], [0.1; 0.4], [0.1; 0.45], [0.1; 0.5], [0.1; 0.55], [0.1; 0.6]];
-target_ps = [zeros(1, 25) ones(1, 25) * 0.1;
-            linspace(0.35, 0.6, 25) linspace(0.35, 0.6, 25)];
+target_ps = [[0; 0.35], [0; 0.36], [0; 0.38], [0; 0.4], [0; 0.45], [0; 0.5], [0; 0.55], [0; 0.6], [0.1; 0.35], [0.1; 0.36], [0.1; 0.38], [0.1; 0.4], [0.1; 0.45], [0.1; 0.5], [0.1; 0.55], [0.1; 0.6]];
+% target_ps = [zeros(1, 25) ones(1, 25) * 0.1;
+            % linspace(0.35, 0.6, 25) linspace(0.35, 0.6, 25)];
 
 %%
 figure
