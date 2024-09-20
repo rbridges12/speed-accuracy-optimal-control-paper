@@ -10,17 +10,17 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-% filename = "fitts_law_ethan_real_single_more_rad.mat";
-% type = "single";
-filename = "fitts_law_ethan_real_mpc_more_rad.mat";
-type = "mpc";
+filename = "fitts_law_ethan_real_single_100.mat";
+type = "single";
+% filename = "fitts_law_ethan_real_mpc_more_rad.mat";
+% type = "mpc";
 
 N = 40; % number of discretized nodes
 Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 40; % duration weight
+k_t = 100; % duration weight
 color = "r";
 num_trials = 1;
 if type == "mpc"
