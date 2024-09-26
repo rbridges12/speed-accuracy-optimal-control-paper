@@ -35,7 +35,8 @@ hold on
 xlabel('Normalized Time')
 ylabel('Normalized Velocity')
 for i = 1:5
-    result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
+    %result = nonlinear_mpc(N, Tsim, motor_noise_stddev, 0.1, target_vel_accuracy, 1, 1, X_init, target_pos);
+    result_fast = nonlinear_mpc(N, Tsim, motor_noise_stddev, 0.035, target_vel_accuracy, 1, 100, [3.1416; 3.1416; 0; 0], [0.1; 0.35]);
     EE_vel = result.EEVel;
     norm_vel = vecnorm(EE_vel,2,2);
     [max_vel, max_vel_i] = max(norm_vel);
@@ -109,6 +110,7 @@ result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_
 
 %%
     result_fast = optimization_6muscles(N, motor_noise_stddev, 0.1, target_vel_accuracy, 1, 20, [0.35; 2; 0; 0], 0, 0, P_init, [0.1; 0.5], false, [], [], [], 0, 3000);
+%%
     EE_vel = result.EEVel;
     norm_vel = vecnorm(EE_vel,2,2);
     [max_vel, max_vel_i] = max(norm_vel);
@@ -126,14 +128,39 @@ result = optimization_6muscles(N, motor_noise_stddev, target_radius, target_vel_
     fast_normalized_time = result_fast.time./max(result_fast.time);
 
     figure
-    grid on
-    hold on
-    plot(normalized_time, normalized_vel, 'LineWidth', 2)
-    plot(fast_normalized_time, fast_normalized_vel, 'LineWidth', 2)
+    blue = [0 0.4470 0.7410];
+    set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+    set(groot, 'defaultLegendInterpreter','latex');
+    alpha = 0.7;
+    Darkgrey = [.25 .25 .25];
+    DarkBlue = [0 .2 .4];
+    DarkBlue = [DarkBlue, alpha];
+    Azure = [53, 112, 188]/255;
+    Azure = [Azure, alpha];
+    VermillionRed = [156,31,46]/255;
+    VermillionRed = [VermillionRed, alpha];
+    DupontGray = [144,131,118]/255;
+    grid on; hold on
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "YMinorTick", "on");
+    plot(normalized_time, normalized_vel, 'Color', blue, 'LineWidth', 2)
+    plot([max_vel_time max_vel_time], [0 1], 'Color', blue, 'LineStyle', '--', 'LineWidth', 1)
+    plot(fast_normalized_time, fast_normalized_vel, 'Color', VermillionRed, 'LineWidth', 2)
+    plot([max_vel_time_fast max_vel_time_fast], [0 1], 'Color', VermillionRed, 'LineStyle', '--', 'LineWidth', 1)
+    
     % movement_distance = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata));
     % movement_time = mean(times);
-    title('Normalized Velocity of End Effector')
-    legend("slow, max vel = " + max_vel + " at " + max_vel_time, "fast, max vel = " + fast_max_vel + " at " + max_vel_time_fast)
+    % title('Normalized Velocity of End Effector')
+    xlabel('Normalized Time', 'Interpreter', 'latex');
+    ylabel('Normalized Velocity', 'Interpreter', 'latex');
+    legend("slow", "", "fast", "", 'location', 'northwest');
+    max_vel_time
+    max_vel
+    max_vel_time_fast
+    fast_max_vel
+    result.time(end)
+    result_fast.time(end)
+    slow_dist = norm(target_pos - EndEffectorPos(X_init(1:2), result.auxdata))
+    fast_dist = norm([0.1; 0.5] - EndEffectorPos([0.35; 2], result.auxdata))
     % title(t)
 
 %%

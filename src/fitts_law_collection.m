@@ -10,10 +10,10 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-% filename = "fitts_law_ethan_real_single_100.mat";
-% type = "single";
-filename = "fitts_law_ethan_real_mpc_100.mat";
-type = "mpc";
+filename = "fitts_law_ethan_real_single_100.mat";
+type = "single";
+% filename = "fitts_law_ethan_real_mpc_100.mat";
+% type = "mpc";
 
 N = 40; % number of discretized nodes
 Tsim = 0.1;
@@ -147,11 +147,24 @@ fit_times = a + b * difficulties;
 mdl = fitlm(difficulties, times);
 rsq = mdl.Rsquared.Ordinary;
 
-figure;
-title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
+figure
+blue = [0 0.4470 0.7410];
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+set(groot, 'defaultLegendInterpreter','latex');
+alpha = 0.7;
+Darkgrey = [.25 .25 .25];
+DarkBlue = [0 .2 .4];
+DarkBlue = [DarkBlue, alpha];
+Azure = [53, 112, 188]/255;
+Azure = [Azure, alpha];
+VermillionRed = [156,31,46]/255;
+VermillionRed = [VermillionRed, alpha];
+DupontGray = [144,131,118]/255;
+% title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
 xlabel('Difficulty Index');
 ylabel('Movement Duration (s)');
 hold on; grid on;
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "YMinorTick", "on");
 % plot difficulty index points vs time, points with different radii have different colors
 % radii_colors = [1 0 0;
 %                 0 1 0;
@@ -181,9 +194,9 @@ hold on; grid on;
 % end
 % legend(legend_items, 'location', 'northwest');
 
-plot(difficulties, times, 'bo');
-plot(difficulties, fit_times, 'r', 'LineWidth', 2);
-legend('Data', 'Fitts'' Law Fit', 'location', 'northwest');
+plot(difficulties, times, 'o', "MarkerSize", 8, 'MarkerEdgeColor', blue, "LineWidth", 2);
+plot(difficulties, fit_times, "-", "Color", "r", 'LineWidth', 3);
+legend('Model', 'Fitts'' Law', 'location', 'northwest');
 
 function result = trial_already_run(trials, X_init, target_pos, target_radius)
     for i = 1:length(trials)

@@ -17,3 +17,5 @@ speedaccuracy_results/*/
 # python
 *.pyc
 __pycache__/
+
+data/
