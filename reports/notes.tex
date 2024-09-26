@@ -1,0 +1,117 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, float}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\allowdisplaybreaks
+
+\DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+\DeclareMathOperator{\Var}{\operatorname{Var}}% variance
+\DeclareMathOperator{\Span}{\operatorname{span}}% span
+\DeclareMathOperator{\Ad}{\operatorname{Ad}}% Adjoint
+\DeclareMathOperator{\diag}{\operatorname{diag}}% Adjoint
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}} % partial derivatives
+
+\title{Misc. Notes}
+
+\begin{document}
+
+\maketitle
+
+\section{System Model and Dynamics}
+\begin{align}
+    \mathbf{x} &= \begin{bmatrix}
+        \mathbf{q} &
+        \dot{\mathbf{q}}
+    \end{bmatrix}^\top = \begin{bmatrix}
+        \theta_s &
+        \theta_e &
+        \dot{\theta}_s &
+        \dot{\theta}_e
+    \end{bmatrix}^\top \\
+    \mathbf{u} &= \begin{bmatrix}
+        a_{\text{brach}} & a_{\text{lattri}} & a_{\text{antdel}} & a_{\text{postdel}} & a_{\text{bic}} & a_{\text{lattri}}
+    \end{bmatrix}
+\end{align}
+
+\begin{align}
+    \dot{\mathbf{x}} &= f(\mathbf{x}, \mathbf{u}, \mathbf{w}) \quad \mathbf{w} \sim \mathcal{N}(0, \Sigma_w) \\
+    &= \begin{bmatrix}
+        \dot{\mathbf{q}} \\
+        M(\mathbf{q})^{-1} \left(C(\mathbf{q}, \dot{\mathbf{q}}) + T_M(\tilde{\mathbf{u}}, \mathbf{q})\right)
+    \end{bmatrix} \\
+    \tilde{\mathbf{u}} &= \mathbf{u} + \diag(\mathbf{u})\mathbf{w}
+\end{align}
+
+\section{Discretization \& Linearization}
+\begin{align*}
+    \mathbf{x}_{k+1} &= f(\mathbf{x_k}, \mathbf{u_k}, \mathbf{w_k}) \\
+    &= g(\mathbf{x_k}, \mathbf{\tilde{u}_k}) = g(\mathbf{x_k}, \mathbf{u_k} + \diag(\mathbf{u}) \mathbf{w_k}) \\
+    &\approx f^* + A_k(\mathbf{x_k} - \mathbf{x^*}) + B_k(\mathbf{u_k} - \mathbf{u^*}) + C_k(\mathbf{w_k} - \mathbf{w^*}) \\
+    &\mathbf{w^*} = 0 \\
+    \mathbf{x}_{k+1} &\approx f^* + A_k(\mathbf{x_k} - \mathbf{x^*}) + B_k(\mathbf{u_k} - \mathbf{u^*}) + C_k \mathbf{w_k} \\
+    &\quad f^* = g(\mathbf{x^*}, \mathbf{u^*}) \\
+    &\quad A_k = \pd{g}{\mathbf{x}}\bigg|_{\mathbf{x^*}, \mathbf{u^*}} \\
+    &\quad B_k = \pd{g}{\mathbf{\tilde{u}}} \pd{\mathbf{\tilde{u}}}{\mathbf{u}}\bigg|_{\mathbf{x^*}, \mathbf{u^*}, \mathbf{w^*}} = \pd{g}{\mathbf{\tilde{u}}} \left(I + \diag(\mathbf{w})\right)\bigg|_{\mathbf{x^*}, \mathbf{u^*}, \mathbf{w^*}} = \pd{g}{\mathbf{\tilde{u}}}\bigg|_{\mathbf{x^*}, \mathbf{u^*}} \\
+    &\quad C_k = \pd{g}{\mathbf{\tilde{u}}} \pd{\mathbf{\tilde{u}}}{\mathbf{w}}\bigg|_{\mathbf{x^*}, \mathbf{u^*}, \mathbf{w^*}} = \pd{g}{\mathbf{\tilde{u}}} \diag(\mathbf{u})\bigg|_{\mathbf{x^*}, \mathbf{u^*}} = B_k \diag(\mathbf{u^*})
+\end{align*}
+
+\begin{align*}
+    \mathbf{x}_{k+1} &= f^* + A_k(\mathbf{x_k} - \mathbf{x^*}) + B_k(\mathbf{u_k} - \mathbf{u^*}) + B_k \Lambda(\mathbf{u^*}) \mathbf{w_k} \\
+    % \mathbf{x}_{k+1} - f^* &= A_k(\mathbf{x_k} - \mathbf{x^*}) + B_k(\mathbf{u_k} - \mathbf{u^*} + \Lambda(\mathbf{u^*}) \mathbf{w_k}) \\
+    P_{k+1} &= A_k P_k A_k^\top + C_k \Sigma_w C_k^\top \\
+    &= A_k P_k A_k^\top + B_k \Lambda(\mathbf{u^*}) \Sigma_w \Lambda(\mathbf{u^*}) B_k^\top
+\end{align*}
+\begin{align*}
+    B_k \Lambda(\mathbf{u^*}) \Sigma_w \Lambda(\mathbf{u^*}) B_k^\top &= B \begin{bmatrix}
+        u_1 & 0 & 0 \\
+        0 & u_2 & 0 \\
+        0 & 0 & u_3
+    \end{bmatrix} \begin{bmatrix}
+        q_{11} & q_{12} & q_{13} \\
+        q_{12} & q_{22} & q_{23} \\
+        q_{13} & q_{23} & q_{33}
+    \end{bmatrix}
+    \begin{bmatrix}
+        u_1 & 0 & 0 \\
+        0 & u_2 & 0 \\
+        0 & 0 & u_3
+    \end{bmatrix} B^\top \\
+    &= B \begin{bmatrix}
+        u_1 & 0 & 0 \\
+        0 & u_2 & 0 \\
+        0 & 0 & u_3
+    \end{bmatrix} \begin{bmatrix}
+        q_{11} u_1 & q_{12}u_2 & q_{13}u_3 \\
+        q_{12}u_1 & q_{22} u_2& q_{23}u_3 \\
+        q_{13}u_1 & q_{23} u_2& q_{33} u_3
+    \end{bmatrix} B^\top \\
+    &= B \begin{bmatrix}
+        q_{11} u_1^2 & q_{12}u_1u_2 & q_{13}u_1u_3 \\
+        q_{12}u_1 u_2& q_{22} u_2^2& q_{23}u_2u_3 \\
+        q_{13}u_1u^3 & q_{23} u_2u_3& q_{33} u_3^2
+    \end{bmatrix} B^\top \\
+    &= B \left( \Sigma_w \odot \mathbf{u} \mathbf{u}^\top \right) B^\top
+\end{align*}
+Where $\odot$ refers to element-wise multiplication.\\
+
+
+Aside - derivative of diagonal matrix times vector:
+\begin{align*}
+    \diag(\mathbf{u})\mathbf{w} 
+    &= \begin{bmatrix}
+        u_1 w_1 \\
+        u_2 w_2 \\
+        \vdots \\
+        u_n w_n
+    \end{bmatrix} \\
+    \begin{bmatrix}
+        \pd{\diag(\mathbf{u})\mathbf{w}}{\mathbf{u}}
+    \end{bmatrix}_{ij} &= \pd{[\diag(\mathbf{u})\mathbf{w}]_i}{u_j} = \begin{cases*}
+        w_i & \text{if } i = j \\
+        0 & \text{otherwise}
+    \end{cases*} \\
+    \pd{\diag(\mathbf{u})\mathbf{w}}{\mathbf{u}} &= \diag(\mathbf{w}) \\
+\end{align*}
+
+\end{document}
