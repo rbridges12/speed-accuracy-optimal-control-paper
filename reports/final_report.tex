@@ -52,39 +52,44 @@ The decision to combine noise into a trajectory optimization model meant we need
 
 We immediately recognized the potential usefulness of this model, as it was implemented in MATLAB and was freely available on github. As a result, when we decided to transition away from using the complex 47 muscle model, it was a clear choice to make. The model already included a framework for modeling reaching trajectories in the presence of both signal and motor noise, and although it was not geared towards analyzing the speed-accuracy tradeoff it would not be overly difficult to adapt it for that purpose. We also considered using the model proposed by Peternel, et al. \cite{cost_benefit_tradeoff}, which also examined stochastic optimization in the presence of motor noise, while also focusing on the speed-accuracy tradeoff. However, this model was not readily avaliable to download, so we decided against attempting to recreate it in favor of adapting the Van Wouwe model.
 
-\section{Problem Setup}
-We aim to answer the following questions: 
+\section{Problem Formulation}
+
+We aimed to answer the following questions: 
 \begin{itemize}
     \item When using trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question studied in \cite{original_paper_high_fidelity})
 
     \item How does the introduction of signal-dependent motor noise to the model affect this comparison?
 
-    \item How does the use of different trajectory optimization methods affect this comparison?
+    \item How does this behavior change when simulating execution of reaching movements using feedback control rather than just planning them?
+    % \item How does the use of different trajectory optimization methods affect this comparison?
 \end{itemize}
-\todo{simplify this} \\
-For each of these questions, we will use the following metrics to compare the simulated behavior (collected from our model) to human behavior (experimental data collected and used in \cite{original_paper_high_fidelity}):
+For each of these questions, we used the following metrics to compare the simulated behavior (collected from our models) to human behavior (experimental data collected and used in \cite{original_paper_high_fidelity}):
 \begin{itemize}
     \item Similarity of hand velocity profile during center-out fast reaching movements, evaluated qualitatively by appearance and quantitatively by time and value of maximum velocity:
     \begin{align}
-        \delta_{V_{\text{max}}} &= \max \left|V_{\text{sim}}(t)\right| - \max \left|V_{\text{exp}}(t)\right| \\
-        \delta_{T_{\text{max}}} &= \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}(t)\right|
+        V_{\text{max}} &= \max \left|V_{\text{sim}}(t)\right| \\
+        T_{\text{max}} &= \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}(t)\right|
+        % \delta_{V_{\text{max}}} &= \max \left|V_{\text{sim}}(t)\right| - \max \left|V_{\text{exp}}(t)\right| \\
+        % \delta_{T_{\text{max}}} &= \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}(t)\right|
     \end{align}
-    Where $V_{\text{sim}}$ is the simulated velocity of the hand during its reaching trajectory, $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory, and $t_f$ is the time at which the hand reaches the target.
+    Where $V_{\text{sim}}$ is the simulated velocity of the hand during its reaching trajectory, and $t_f$ is the time at which the hand reaches the target.
+    % , $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory,
 
     \item Delay in time of maximum velocity between large and small targets:
     \begin{multline}
-        \delta_{\text{delay}} = \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{L}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{S}(t)\right|\right) \\
-        - \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{L}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{S}(t)\right|\right)
+        t_{\text{delay}} = \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{L}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{S}(t)\right|
+        % - \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{L}(t)\right| - \arg\max_{t \in [0, $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory,, t_f]} \left|V_{\text{exp}}^{S}(t)\right|\right)
     \end{multline}
-    Where $V_{\text{sim}}^{L}$ and $V_{\text{sim}}^{S}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively. $V_{\text{exp}}^{\text{large}}$ and $V_{\text{exp}}^{\text{small}}$ are defined similarly.
+    Where $V_{\text{sim}}^{L}$ and $V_{\text{sim}}^{S}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively.
+    % $V_{\text{exp}}^{\text{large}}$ and $V_{\text{exp}}^{\text{small}}$ are defined similarly.
     \item Fitts' Law model parameters $a$ and $b$.
-    Several reaching tasks with fixed target distance and variable target width will be simulated. A least squares regression will then be used on movement duration $MD$ and target width $W$ data for each trial in order to fit the parameters:
+    Several reaching tasks with variable target distance and target width will be simulated. A least squares regression will then be performed on the resulting movement duration data from each trial in order to fit the parameters:
     \begin{align}
         \begin{bmatrix}
             a^* \\ b^*
-        \end{bmatrix} &= \arg\min_{a, b} \sum_{i=1}^N \left(MD_i - \left(a + b \log_2\left(\frac{2A}{W_i}\right)\right)\right)^2
+        \end{bmatrix} &= \arg\min_{a, b} \sum_{i=1}^N \left(MD_i - \left(a + b \log_2\left(\frac{2A_i}{W_i}\right)\right)\right)^2
     \end{align}
-    Where $MD_i$ and $W_i$ are the movement duration and target width, respectively, for the $i$th trial, and $N$ is the number of trials.
+    Where $MD_i$ is the movement duration, $A_i$ the target distance, and $W_i$ the target width for the $i$th trial, and $N$ is the number of trials.
 \end{itemize}
 
 \subsection{System Model and Dynamics}
@@ -219,7 +224,7 @@ To simulate the act of executing a reaching motion, rather than just planning it
 
 \subsection{Implementation}
 To execute both our feedforward planning and feedback MPC simulations, the algorithms were implemented in MATLAB. 
-We used the CasADi library \todo{cite this} as an optimization framework to specify the problem and provide automatic differentiation for gradient and Jacobian computation. The IPOPT nonlinear solver was then used to perform the numerical optimization, with trivial constants provided as initial guesses for elements of the design vector. 
+We used the CasADi library \cite{casadi} as an optimization framework to specify the problem and provide automatic differentiation for gradient and Jacobian computation. The IPOPT nonlinear solver was then used to perform the numerical optimization, with trivial constants provided as initial guesses for elements of the design vector. 
 IPOPT was run for a maximum of 3000 iterations, after which the problem was considered infeasible. For MPC simulation, the optimization at the first iteration was solved as described previously, and all consecutive iterations were "warm started" by setting the initial design vector guess equal to the solution from the previous iteration. Most optimization runs converged in less than 500 iterations and took less than 30 seconds to run on a high end consumer grade CPU, although MPC optimization runs that were "warm started" typically converged significantly faster and in fewer iterations. All of the code used to implement the optimization problem can be found in the project GitHub repository: \href{https://github.com/rbridges12/eecs-598-project}{https://github.com/rbridges12/eecs-598-project}. \todo{rename github repo to paper name}
 
 \section{Simulations}
@@ -284,14 +289,14 @@ From these results we can conclude that although our underlying dynamical model 
 % We utilized out model to solve for optimization problems with varying indexes of difficulty in order to determine Fitts' Law parameters. 
 
 In order to determine Fitt's Law parameters for each model, we performed a series of simulations with varying index of difficulty (ID) and recorded the movement duration for each trial.
-We varied both the distance to the target and the target width to obtain a range of ID values ranging from 2.14 to 3.22. ID values were calculated using eq. \ref{eq:DifficultyIndex}:
+We varied both the distance to the target and the target width to obtain a range of ID values from 2.14 to 3.22, calculated using eq. \ref{eq:DifficultyIndex}:
 
 \begin{equation}
     \text{ID} = \log_2 \left(\frac{2A}{W}\right) \label{eq:DifficultyIndex}
 \end{equation}
 
 Where $A$ is the distance to the target and $W$ is the target width.
-The target radius was varied from 0.03m to 0.04m, and the target distance was varied from 0.35 m to 0.60 m.
+The target radius was varied from 0.03 m to 0.04 m, and the target distance was varied from 0.35 m to 0.60 m.
 All other parameters were held constant across trials, and the same set of parameters was used for both the feedforward and MPC models.
 $N = 40$ nodes were used, $t_{\text{iter}} = 0.1$ s, $k_u = 1$, and $k_t = 100$. \todo{remove these parameters?}
 
@@ -300,18 +305,19 @@ Once all trials were complete, a least-squares fit was performed on the data fro
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{images/final_fitts_law_single.jpg}
-    \caption{\todo{}}
+    \caption{Speed-accuracy tradeoff for the feedforward model.}
     \label{fig:FittsLawSingle}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{images/final_fitts_law_mpc.jpg}
-    \caption{\todo{}}
+    \caption{Speed-accuracy tradeoff for the feedback MPC model.}
     \label{fig:FittsLawMPC}
 \end{figure}
 
 Both models produce $a,b$ values that fall within the experimentally observed ranges of $a \in [0.0047, 0.5239]$ and $b \in [0.0393,0.1987]$ reported in \cite{fitts_law_exp_data}, and their $R^2$ values indicate good agreement with Fitts' Law.
+\todo{discuss significance of different parameters between models, higher variance data in MPC model}
 %  These values are similar to those produced by a motor noise only model with $R^2 = 0.85$ \cite{signal_dependent_motor_noise} and a torque model with $R^2 = 0.88$ \cite{original_paper_high_fidelity}. However, they fall short of the high fidelity model, which produced $R^2 = 0.974$ \cite{original_paper_high_fidelity}.
 
 %  This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}.
@@ -320,13 +326,9 @@ Both models produce $a,b$ values that fall within the experimentally observed ra
 %  Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. 
 %  Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
 
-Since our model is able to partially replicate the kinematic profiles of real reaching experiments, and the movement duration predicted by our simulations can be predicted by Fitts' Law, our model is reasonably effective at representing the speed-accuracy tradeoff phenomenon.
+Since our models are both able to partially replicate the kinematic profiles of real reaching experiments, and the movement duration predicted by our simulations can be predicted by Fitts' Law, our model is reasonably effective at representing the speed-accuracy tradeoff phenomenon.
 Our model surpasses the capabilities of a simple torque model, indicating that trajectory optimization while applying signal dependent motor noise to muscle activation is an effective and promising method for improving the modeling of human reaching.
 Both noise and trajectory optimization appear to be valid explanations for speed-accuracy tradeoff, and they are not mutually exclusive.
-Our simplified 2D model replicates speed-accuracy tradeoff, but doesn't capture all the complexity of the human arm, which leads to some degradation in performance when compared to the capabilities of a high fidelity system. 
-There is definitely potential in combining signal dependent motor noise with a high fidelity musculoskeletal model, which would further improve the realism of simulations of end effector trajectories and movement duration. However, we suspect there would be significant challenge to using such a model based off of the difficulties we encountered obtaining convergence for high precision targets using our simplified approach. 
-
-% Overall, we were able to accomplish all of our baseline goals. We successfully developed a model that was able to incorporate signal dependent motor noise into a trajectory optimization problem, and were able to run a sufficient number of experimental trials using this model. Additionally, we were able to make insightful comparisons of our simulated data to data from previous works, including experimental data from human subjects. While we did not have time to explore our reach goals of comparing performance of different trajectory optimization methods, we generally achieved the desired result from this project.
 
 \begin{figure}[h]
     \centering
@@ -349,9 +351,14 @@ There is definitely potential in combining signal dependent motor noise with a h
 % While this was approximation was sufficient to demonstrate the high level findings, a more accurate noise model may lead to more accurate results with respect to replication of experimental data.
 % Additionally, comparison of different noise models could provide information about the noise model used internally by the human brain.
 One limitation of this work is the lack of a more complex arm model. While the 2D model was sufficient to demonstrate the speed-accuracy tradeoff, a more complex model like the one used in \cite{original_paper_high_fidelity} could provide more biologically realistic data and results, and would allow us to interpet the details of our simulated results rather than simply looking at high level trends.
+% Our simplified 2D model replicates speed-accuracy tradeoff, but doesn't capture all the complexity of the human arm, which leads to some degradation in performance when compared to the capabilities of a high fidelity system. 
+% There is definitely potential in combining signal dependent motor noise with a high fidelity musculoskeletal model, which would further improve the realism of simulations of end effector trajectories and movement duration. However, we suspect there would be significant challenge to using such a model based off of the difficulties we encountered obtaining convergence for high precision targets using our simplified approach. 
 
 the use of different trajectory optimization methods would allow us to determine the best method for modeling the speed-accuracy tradeoff, and therefore gain insight into the biological accuracy of each method. This could also give us a more fair comparison to the simulated results in \cite{original_paper_high_fidelity}, since they used a different optimization method which could contribute to the comparison. We suspect that with an ideal noise model and optimization technique, signal dependent noise can be fully implemented into a high fidelity musculoskeletal model to achieve the best lifelike simulations.
 
+\todo{mention use of different optimization methods like shooting, also use of stochastic optimization to better simulate natural variation in human movements, mention difficulty with converging}
+
+\todo{mention adding sensor noise and feedback delay to MPC model}
 % An additional trait of velocity profiles with slower movements is a tendency for multiple local minima \cite{soechting_target_size}\cite{tanaka_min_variance}. Our model does not display these traits, while the high fidelity model does. As a result, we conclude the two dimensional muscle activation model we use for our optimization is superior to simple torque models with motor noise, it is not detailed enough to fully match the shape of experimental results as a high fidelity model would. 
 % \par Our model is also able to replicate the speed-accuracy tradeoff as modeled by Fitts' Law. Our obtained values for a and b (\(a = 0.0604\) and \(b = 0.0759\)) fall well within the ranges \(a \in [0.0047, 0.5239]\), and \(b \in [0.0393,0.1987]\) \cite{fitts_law_exp_data}. The \(R^2\) value of 0.888 obtained indicates good agreement of our model with Fitts' law. This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}. However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}. We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model. Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
 
