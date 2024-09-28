@@ -10,12 +10,13 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-filename = "fitts_law_ethan_real_single_100.mat";
-type = "single";
-% filename = "fitts_law_ethan_real_mpc_100.mat";
-% type = "mpc";
+% filename = "fitts_law_ethan_real_single_100.mat";
+% type = "single";
+filename = "data/fitts_law_ethan_real_mpc_100.mat";
+% filename = "test2.mat";
+type = "mpc";
 
-N = 40; % number of discretized nodes
+Nsv = 40; % number of discretized nodes
 Tsim = 0.1;
 motor_noise_stddev = 0.036; % motor noise standard deviation
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
@@ -73,6 +74,16 @@ for i = 1:length(target_radii)
                     elseif type == "mpc"
                         result = nonlinear_mpc(N, Tsim, motor_noise_stddev, target_radius, target_vel_accuracy, k_u, k_t, X_init, target_pos);
                     end
+                    N
+                    Tsim
+                    motor_noise_stddev
+                    target_radius
+                    target_vel_accuracy
+                    k_u
+                    k_t
+                    X_init
+                    target_pos
+                    
                     EE_vel = result.EEVel;
                     norm_vel = vecnorm(EE_vel,2,2);
                     [max_vel, max_vel_i] = max(norm_vel);

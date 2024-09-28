@@ -233,24 +233,42 @@ Normalized velocity profiles for a slow and a fast trial of the feedforward mode
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{images/single_slow_fast.jpg}
-    \caption{Normalized end effector velocity profiles for slow and fast feedforward reaching simulations.}
+    \caption{Normalized end effector velocity profiles for slow and fast feedforward reaching simulations. Each velocity peak is marked with a dashed line.}
     \label{fig:VelocityFeedforward}
 \end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{images/mpc_slow_fast.jpg}
+    \caption{Normalized end effector velocity profiles for slow and fast MPC reaching simulations. Profiles of each trial are shown along with the average velocity peaks.}
+    \label{fig:VelocityMPC}
+\end{figure}
+% \begin{table}[]
+% \begin{tabular}{|l|l|l|l|l|l|l|}
+% \hline
+%  & Max Velocity & Time of Max Vel & Distance & Target Radius & $k_u$ & $k_t$ \\ \hline
+%  &  &  &  &  &  &  \\ \hline
+%  &  &  &  &  &  &  \\ \hline
+%  &  &  &  &  &  &  \\ \hline
+%  &  &  &  &  &  &  \\ \hline
+% \end{tabular}
+% \end{table}
 % For the feedforward model, the maximum velocity of the slow simulation was 0.76 m/s and occurred at a normalized time of 0.50.
 
-\todo{rewrite this} \\
-\todo{incorporate MPC} \\
 \todo{table of parameters?} \\
-As described in the problem description several metrics were evaluated using the simulated velocity profile data. For the fast feedforward trajectory, the maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68. This falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). The control effort weight was 1 and the duration weight was 20, with a movement distance of 0.17 m and a target radius of 0.1 m. For the feedforward slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
+% As described in the problem description several metrics were evaluated using the simulated velocity profile data. 
+For the fast feedforward trajectory, the maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68. This falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). The control effort weight was 1 and the duration weight was 20, with a movement distance of 0.17 m and a target radius of 0.1 m. For the feedforward slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
 When comparing maximum velocities between large and small targets, our model shows a normalized time delay of 0.18 between the two, which is larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). 
+
+The MPC model showed similar results, with the maximum velocity of the fast trajectory falling near the experimental range (2.04 m/s), and occurring at a normalized time of 0.67. The control effort weight was 1 and the duration weight was 100, with a movement distance of 0.36 m and a target radius of 0.1 m. For the slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
+The normalized time delay between large and small targets was 0.17, which is similar to the feedforward model.
 
 Qualitatively, these velocity profiles reproduce several trends found in experimental data.
 Existing studies show that normalized velocity profiles will be symmetric for medium velocities, shift to the left for slow movements, and shift to the right for fast movements \cite{asymmetric_vel_acc}\cite{human_vel_curves}. 
-Our simulations produced a similar trend, with the normalized velocity profile becoming less symmetric the faster the movement duration became as shown in Figures \ref{fig:VelocityFeedforward} and \ref{TODO}. 
-these results are more realistic than a pure motor noise model, which displays primarily symmetric velocity profiles \cite{signal_dependent_motor_noise}; they are also more realistic than a torque model, which shows poorer correlation with experimental data \cite{5}.
+Our simulations produce a similar trend, with the normalized velocity profile becoming less symmetric as movement duration decreases.
+these results are more realistic than a pure motor noise model, which displays primarily symmetric velocity profiles \cite{signal_dependent_motor_noise}; they are also more realistic than a torque model, which shows poorer correlation with experimental data \cite{original_paper_high_fidelity}.
 Although the model fails to replicate a shift of the normalized velocity peak to the left at the lowest speed ranges, it importantly replicates the trend of slower movements having earlier peak velocities, which is a key feature of the experimental data.
-From these results we can conclude that although our model is not as accurate as the high fidelity model used in \cite{original_paper_high_fidelity}, it shows a level of realism that makes it useful for studying the speed-accuracy tradeoff in reaching movements.
+From these results we can conclude that although our underlying dynamical model is not as accurate as the high fidelity model used in \cite{original_paper_high_fidelity}, both the feedforward and feedback reaching models show a level of realism that make them useful for studying the speed-accuracy tradeoff in reaching movements.
 
 % Quantitatively, these velocity profiles match experimental data quite well. The maximum velocity of the fast feedforward trajectory falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). 
 % When comparing maximum velocities between large and small targets, our model shows a normalized time delay of 0.17 between the two, which appears larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). Importantly, the trend of slower movements having earlier peak velocities is present in our model, which is a key feature of the experimental data.
@@ -273,16 +291,17 @@ We varied both the distance to the target and the target width to obtain a range
 \end{equation}
 
 Where $A$ is the distance to the target and $W$ is the target width.
-The target radius was varied from 0.03m to 0.04m, and the target distance was varied from \todo{? to ?}.
-All other parameters were held constant across trials, and the same set of parameters was used for both the feedforward and MPC models. \todo{add parameters}.
+The target radius was varied from 0.03m to 0.04m, and the target distance was varied from 0.35 m to 0.60 m.
+All other parameters were held constant across trials, and the same set of parameters was used for both the feedforward and MPC models.
+$N = 40$ nodes were used, $t_{\text{iter}} = 0.1$ s, $k_u = 1$, and $k_t = 100$. \todo{remove these parameters?}
 
-Once all trials were complete, a least-squares fit was performed on the data from each model in order to determine the $a$ and $b$ parameters for a Fitts' Law line. These values are $a = 0.24504$ and $b = 0.19348$ for the feedforward model, and $a = 0.30379$ and $b = 0.13263$ for the feedback model. Fit lines for the feedforward and feedback models are shown in Figures \ref{fig:FittsLawSingle} and \ref{fig:FittsLawMPC}, respectively.   
+Once all trials were complete, a least-squares fit was performed on the data from each model in order to determine the $a$ and $b$ parameters for a Fitts' Law line. These values are $a = 0.24504$ and $b = 0.19348$ for the feedforward model ($R^2 = 0.807$), and $a = 0.30379$ and $b = 0.13263$ for the feedback model ($R^2 = 0.721$). Fit lines for the feedforward and feedback models are shown in Figures \ref{fig:FittsLawSingle} and \ref{fig:FittsLawMPC}, respectively.   
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{images/final_fitts_law_single.jpg}
     \caption{\todo{}}
-    \label{fig FittsLawSingle}
+    \label{fig:FittsLawSingle}
 \end{figure}
 
 \begin{figure}[h]
@@ -292,15 +311,14 @@ Once all trials were complete, a least-squares fit was performed on the data fro
     \label{fig:FittsLawMPC}
 \end{figure}
 
-Both models produce $a,b$ values that fall within the ranges of $a \in [0.0047, 0.5239]$ and $b \in [0.0393,0.1987]$ reported in \cite{fitts_law_exp_data}. 
-The $R^2$ values of 0.807 for the feedforward model and 0.721 for the feedback model both indicate good agreement with Fitts' Law.
- These values are similar to those produced by a motor noise only model with $R^2 = 0.85$ \cite{signal_dependent_motor_noise} and a torque model with $R^2 = 0.88$ \cite{original_paper_high_fidelity}. However, they fall short of the high fidelity model, which produced $R^2 = 0.974$ \cite{original_paper_high_fidelity}.
+Both models produce $a,b$ values that fall within the experimentally observed ranges of $a \in [0.0047, 0.5239]$ and $b \in [0.0393,0.1987]$ reported in \cite{fitts_law_exp_data}, and their $R^2$ values indicate good agreement with Fitts' Law.
+%  These values are similar to those produced by a motor noise only model with $R^2 = 0.85$ \cite{signal_dependent_motor_noise} and a torque model with $R^2 = 0.88$ \cite{original_paper_high_fidelity}. However, they fall short of the high fidelity model, which produced $R^2 = 0.974$ \cite{original_paper_high_fidelity}.
 
 %  This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}.
 %  However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}.
- We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model.
- Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. 
- Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
+%  We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model.
+%  Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. 
+%  Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
 
 Since our model is able to partially replicate the kinematic profiles of real reaching experiments, and the movement duration predicted by our simulations can be predicted by Fitts' Law, our model is reasonably effective at representing the speed-accuracy tradeoff phenomenon.
 Our model surpasses the capabilities of a simple torque model, indicating that trajectory optimization while applying signal dependent motor noise to muscle activation is an effective and promising method for improving the modeling of human reaching.
@@ -325,13 +343,14 @@ There is definitely potential in combining signal dependent motor noise with a h
 \end{figure}
 
 \section{Limitations and Future Work}
-Overall, the results of our simulations indicate a model utilizing both trajectory optimization and signal dependent motor noise can be used to demonstrate the speed-accuracy tradeoff. 
+% Overall, the results of our simulations indicate a model utilizing both trajectory optimization and signal dependent motor noise can be used to demonstrate the speed-accuracy tradeoff. 
 
-One limitation of our work is the inaccuracy of our Gaussian noise model. Due to the highly nonlinear nature of our musculoskeletal arm model caused both by rotating joints and nonlinear muscle actuation, the assumption that the state and end effector distributions remain Gaussian is very inaccurate.
-While this was approximation was sufficient to demonstrate the high level findings, a more accurate noise model may lead to more accurate results with respect to replication of experimental data.
-Additionally, comparison of different noise models could provide information about the noise model used internally by the human brain.
-Another limitation is the lack of a more complex arm model. While the 2D model was sufficient to demonstrate the speed-accuracy tradeoff, a more complex model like the one used in \cite{original_paper_high_fidelity} could provide more biologically realistic data and results, and would allow us to interpet the details of our simulated results rather than simply looking at high level trends.
-Finally, the use of different trajectory optimization methods would allow us to determine the best method for modeling the speed-accuracy tradeoff, and therefore gain insight into the biological accuracy of each method. This could also give us a more fair comparison to the simulated results in \cite{original_paper_high_fidelity}, since they used a different optimization method which could contribute to the comparison. We suspect that with an ideal noise model and optimization technique, signal dependent noise can be fully implemented into a high fidelity musculoskeletal model to achieve the best lifelike simulations.
+% One limitation of our work is the inaccuracy of our Gaussian noise model. Due to the highly nonlinear nature of our musculoskeletal arm model caused both by rotating joints and nonlinear muscle actuation, the assumption that the state and end effector distributions remain Gaussian is very inaccurate.
+% While this was approximation was sufficient to demonstrate the high level findings, a more accurate noise model may lead to more accurate results with respect to replication of experimental data.
+% Additionally, comparison of different noise models could provide information about the noise model used internally by the human brain.
+One limitation of this work is the lack of a more complex arm model. While the 2D model was sufficient to demonstrate the speed-accuracy tradeoff, a more complex model like the one used in \cite{original_paper_high_fidelity} could provide more biologically realistic data and results, and would allow us to interpet the details of our simulated results rather than simply looking at high level trends.
+
+the use of different trajectory optimization methods would allow us to determine the best method for modeling the speed-accuracy tradeoff, and therefore gain insight into the biological accuracy of each method. This could also give us a more fair comparison to the simulated results in \cite{original_paper_high_fidelity}, since they used a different optimization method which could contribute to the comparison. We suspect that with an ideal noise model and optimization technique, signal dependent noise can be fully implemented into a high fidelity musculoskeletal model to achieve the best lifelike simulations.
 
 % An additional trait of velocity profiles with slower movements is a tendency for multiple local minima \cite{soechting_target_size}\cite{tanaka_min_variance}. Our model does not display these traits, while the high fidelity model does. As a result, we conclude the two dimensional muscle activation model we use for our optimization is superior to simple torque models with motor noise, it is not detailed enough to fully match the shape of experimental results as a high fidelity model would. 
 % \par Our model is also able to replicate the speed-accuracy tradeoff as modeled by Fitts' Law. Our obtained values for a and b (\(a = 0.0604\) and \(b = 0.0759\)) fall well within the ranges \(a \in [0.0047, 0.5239]\), and \(b \in [0.0393,0.1987]\) \cite{fitts_law_exp_data}. The \(R^2\) value of 0.888 obtained indicates good agreement of our model with Fitts' law. This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}. However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}. We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model. Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
