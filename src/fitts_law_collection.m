@@ -10,11 +10,11 @@ addpath("./MusculoskeletalDynamics")
 addpath("./Integrator")
 addpath("./plotFunctions")
 
-% filename = "fitts_law_ethan_real_single_100.mat";
-% type = "single";
-filename = "data/fitts_law_ethan_real_mpc_100.mat";
+filename = "data/fitts_law_ethan_real_single_100.mat";
+type = "single";
+% filename = "data/fitts_law_ethan_real_mpc_100.mat";
 % filename = "test2.mat";
-type = "mpc";
+% type = "mpc";
 
 Nsv = 40; % number of discretized nodes
 Tsim = 0.1;
@@ -172,8 +172,8 @@ VermillionRed = [156,31,46]/255;
 VermillionRed = [VermillionRed, alpha];
 DupontGray = [144,131,118]/255;
 % title("Fitts' Law Fit, a = " + a + ", b = " + b + ", R^2 = " + rsq);
-xlabel('Difficulty Index');
-ylabel('Movement Duration (s)');
+xlabel('Index of Difficulty', 'Interpreter', 'latex');
+ylabel('Movement Duration (s)', 'Interpreter', 'latex');
 hold on; grid on;
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "YMinorTick", "on");
 % plot difficulty index points vs time, points with different radii have different colors
@@ -207,6 +207,7 @@ set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "Y
 
 plot(difficulties, times, 'o', "MarkerSize", 8, 'MarkerEdgeColor', blue, "LineWidth", 2);
 plot(difficulties, fit_times, "-", "Color", "r", 'LineWidth', 3);
+% plot(difficulties, fit_times, "-", "Color", VermillionRed, 'LineWidth', 3);
 legend('Model', 'Fitts'' Law', 'location', 'northwest');
 
 function result = trial_already_run(trials, X_init, target_pos, target_radius)

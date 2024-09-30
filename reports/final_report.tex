@@ -16,7 +16,7 @@
 
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
 
-\title{\LARGE \bf Analyzing Fitts' Law using Offline and Online Optimization with Motor Noise}
+\title{\LARGE \bf Analyzing Fitts' Law using Offline and Online Optimal Control with Motor Noise}
 \author{Riley Bridges, Ethan Parham, Jing Shuang (Lisa) Li 
 \thanks{R.B. and E.P. were with the Department of Electrical Engineering and Computer Science and Department of Mechanical Engineering (respectively) at the University of Michigan when the bulk of this work was conducted. J.S.L. is with the Department of Electrical Engineering and Computer Science at the University of Michigan. {\tt\small rlybrdgs@umich.edu, ejparham@umich.edu, jslisali@umich.edu}}
 }
@@ -33,24 +33,50 @@ The cause of the speed-accuracy tradeoff is a debated topic of interest in motor
 \end{abstract}
 
 \section{Introduction}
-\todo{condense this for ACC audience} \\
-The speed-accuracy tradeoff is a phenomenon in motor neuroscience which describes the relationship between the speed of a motion and the accuracy required of the task being performed. The presence of the speed-accuracy tradeoff means that the more accuracy a movement requires, the more time the movement will take and vice versa. It is easy to observe the phenomena in many activities in daily life. Even tasks as simple as moving a computer mouse to control a cursor clearly demonstrate the increased precision gained from low movement speed. The speed-accuracy tradeoff is fairly ubiquitous across different animal species as well as motor, perceptual, and cognitive tasks \cite{zimmerman_book}. As a result, understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{speed_accuracy_history}, reaction time, and accuracy \cite{hierarchical_speed_accuracy}. The tradeoff can be quantitatively modeled using Fitts’ law. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown below \cite{fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.  
+% Outline:
+% \begin{itemize}
+    % \item what is the speed accuracy tradeoff (1 sentence)
+    % \item it is seen in lots of species and tasks, but it is often studied in the context of human motor tasks (1 sentence)
+    % \item it is often studied using methods from control theory, and it's an important part of understanding human motion
+    % \item speed accuracy tradeoff has been quantified using Fitts' law, which relates target width, distance, and movement duration
+    % \item the causes of speed accuracy tradeoff are not agreed upon, historically theorized to be is caused by signal dependent motor noise, (explain what that is), recently has been reproduced without noise, but with motor planning variability
+    % \item one paper studied speed accuracy tradeoff from motor noise but didn't use optimal control, another studied it from motor planning variability but didn't include noise
+    % \item one paper did optimal control with noise but the noise wasn't signal dependent and it didn't study speed accuracy tradeoff, this is the paper where we got our model from
+    % \item various prior works did misc things, we want to expand this line of study by incorporating both noise and planning variability into a model, and by comparing both planning and online execution of reaching tasks
+%     \item describe what each section contains
+% \end{itemize}
+
+The speed-accuracy tradeoff is a phenomenon in motor neuroscience which describes the inverse relationship between the speed of a motion and the required accuracy of that motion.
+The presence of the speed-accuracy tradeoff means that the more accuracy a movement requires, the more time the movement will take and vice versa.
+It is fairly ubiquitous across different animal species as well as different task types \cite{zimmerman_book}, however it is frequently studied specifically as a property of human motor tasks. Understanding the speed-accuracy tradeoff and its causes is an important part of understanding human motion, as it is a fundamental aspect of human motor control. For this reason, it is often studied using tools from control theory.
+The speed-accuracy tradeoff can be quantified using Fitts' law, which relates the width of a target of motion $W$, the distance of the movement $A$, and the duration of the movement $MD$. The relationship between these three variables is given by Eq. \ref{eq:fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.
+
+% understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{speed_accuracy_history}, reaction time, and accuracy \cite{hierarchical_speed_accuracy}.
+% The tradeoff can be quantitatively modeled using Fitts’ law. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown in Eq. \ref{eq:fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.  
 
 \begin{equation}
     MD = a + b \log_2 \left(\frac{2A}{W}\right) \label{eq:fitts_law}
 \end{equation}
 
- Historically, the speed-accuracy tradeoff has been attributed to signal dependent motor noise, which is noise which has increasing variance depending on the strength of a neural control signal \cite{signal_dependent_motor_noise}. Noise in neural control will cause a change in the desired trajectory of a motion. These perturbations will eventually result in inaccuracies in the final movement. If noise was not a factor in the control of motion, then theoretically faster movements would result in less motor inaccuracy since there would be less time for noise to make an impact on the motion. In fact, the opposite is true as shown by Fitts’ law. The conclusion therefore is that higher speeds result in larger noise signals in motor control, resulting in larger movement variability.
+The causes of the speed-accuracy tradeoff are not well agreed upon. Historically, the speed-accuracy tradeoff has been attributed to signal dependent motor noise, which is noise that increases in variance as the strength of the neural control signal increases \cite{signal_dependent_motor_noise}. 
+However, recent work has shown that the speed-accuracy tradeoff can be reproduced without the presence of motor noise. Trajectory optimization was used to model the planning of a reaching motion, and the speed-accuracy tradeoff was reproduced as the result of motor planning variability \cite{original_paper_high_fidelity}. This is where the brain is theorized to be optimizing the trajectory of a motion, and higher accuracy requirements make the optimization more likely to fall into a suboptimal local minimum.
 
- However, a new development proposes that a biomechanically realistic computational model can demonstrate the speed-accuracy tradeoff without incorporating motor noise \cite{original_paper_high_fidelity}. The findings propose that the speed-accuracy tradeoff is caused by tighter constraints in trajectory optimization for an accurate problem which reduces the number of fast solutions for the problem. As a result, motor planning variability is the root cause of the speed-accuracy tradeoff and not the motor noise as previously proposed. In order to reach this conclusion, the researchers employed a three dimensional, five degree-of-freedom model of the arm utilizing 47 muscles to produce realistic motions. Then, they utilized minimization of a cost function to model point to point movements in order to synthesize movement. They found that the motor variability can be explained using optimal control theory. Essentially, when a movement is being planned, if there is a large target there are many potential optimal paths which are found using the stochastic optimizer. Since there are more potential solutions to the movement problem, there will be many “good” solutions. However, if the search space is decreased by increasing the required accuracy needed for the movement, there will be fewer “good” options, and a less efficient option is more likely to be found when compared to a movement with lower required accuracy. 
- \par Their hypothesis about motor planning was further reinforced using a study of the motor cortex of a Rhesus monkey by correlating data for the preparatory neural state variability for accurate and inaccurate tasks to the movement variability. This further emphasizes that motor planning variability results in variability in the executed motion, and indicates some kind of optimal control is involved in motor planning.
+Several previous works have studied optimal control of a human arm in the presence of motor noise. In \cite{ilqg}, an iterative Linear Quadratic Gaussian controller was studied for executing reaching motions with motor noise.
+This approach was further iterated on in \cite{stochastic_model}, where a similar human arm model was controlled using a combination of feedforward trajectory optimization and full state optimal feedback control. These works did not, however, study the speed-accuracy tradeoff, and the motor noise in the model was not signal dependent. In \cite{cost_benefit_tradeoff}, an optimal controller was used to study the speed-accuracy tradeoff in the presence of signal dependent motor noise. However, the cost benefit tradeoff was the primary focus of the work, it did not compare feed forward and feedback control, and it used a learning based stochastic optimization method rather than a deterministic optimization method.
 
-A key emphasis of the researchers is the further room for improvement on their model. Signal dependent noise and motor planning optimization are likely both contributors to the speed-accuracy tradeoff as they both are able to correlate to Fitts’ law, so a model which combines both would be an improvement over either model on its own. Additionally, improvement on the optimizer used would also have potential to increase the accuracy of the model \cite{deep_rl}.
+We aim to expand on this line of study by incorporating both signal dependent motor noise and motor planning variability into a human reaching model, and by comparing the effects of optimal feedforward and feedback control using a deterministic constrained optimization method.
 
-% The methods humans and animals use to optimize their motions is of great interest beyond just better modeling the reaching of a human arm. Humans are capable of performing and optimizing very complex tasks, which is a capability which is highly desirable in robotics \cite{biometric_human_arm}. Better understanding the speed-accuracy tradeoff and the methods which are used to reduce redundancy in motion will help further the abilities of robots to perform difficult and complex tasks.
+The remainder of the paper is organized as follows. In section II we introduce the system model and problem formulation. In section III we derive the formulations for both feed forward planning and feedback control. In section IV we present the results of our simulations and discuss their implications. Finally, in section V we discuss limitations and future work.
 
-\todo{adapt this into related work section} \\
-The decision to combine noise into a trajectory optimization model meant we needed to find more information on modeling signal dependent noise. This led to the frequently referenced model by Harris and Wolpert \cite{signal_dependent_motor_noise}. This model applied white noise to the neural command signal that activates muscles. The noise is increased proportionally to the control signal strength. In order to add noise into a trajectory optimization model, we began researching other potential models which combined both noise and trajectory optimization. This lead us to the model by Todorov and Li \cite{ilqg}, which uses an iterative LQG model for locally-optimal feedback control which incorporates control dependent noise. Todorov found the control dependent noise has a similar effect to an energy cost, and utilized a stochastic model of the human arm with six muscle actuators in their model. Their work was further iterated on by Van Wouwe et al. \cite{stochastic_model}, who determined that the iLQG model required assumptions and tuning which might not be physically realistic. They acknowledged that the hand tuned cost functions were a simplifaction that potentially sacrificed accuracy. As a result, the Van Wouwe model uses stochastic simulations for both feedforward and feedback control their nonlinear musculoskeletal model, which also uses six muscles. 
+% Noise in neural control will cause a change in the desired trajectory of a motion. These perturbations will eventually result in inaccuracies in the final movement. If noise was not a factor in the control of motion, then theoretically faster movements would result in less motor inaccuracy since there would be less time for noise to make an impact on the motion. In fact, the opposite is true as shown by Fitts’ law. The conclusion therefore is that higher speeds result in larger noise signals in motor control, resulting in larger movement variability.
+
+
+% A key emphasis of the researchers is the further room for improvement on their model. Signal dependent noise and motor planning optimization are likely both contributors to the speed-accuracy tradeoff as they both are able to correlate to Fitts’ law, so a model which combines both would be an improvement over either model on its own. Additionally, improvement on the optimizer used would also have potential to increase the accuracy of the model \cite{deep_rl}.
+
+
+% \todo{adapt this into related work section} \\
+% This led to the frequently referenced model by Harris and Wolpert \cite{signal_dependent_motor_noise}. This model applied white noise to the neural command signal that activates muscles. The noise is increased proportionally to the control signal strength.
+% In order to add noise into a trajectory optimization model, we began researching other potential models which combined both noise and trajectory optimization.
 
 % We immediately recognized the potential usefulness of this model, as it was implemented in MATLAB and was freely available on github. As a result, when we decided to transition away from using the complex 47 muscle model, it was a clear choice to make. The model already included a framework for modeling reaching trajectories in the presence of both signal and motor noise, and although it was not geared towards analyzing the speed-accuracy tradeoff it would not be overly difficult to adapt it for that purpose. We also considered using the model proposed by Peternel, et al. \cite{cost_benefit_tradeoff}, which also examined stochastic optimization in the presence of motor noise, while also focusing on the speed-accuracy tradeoff. However, this model was not readily avaliable to download, so we decided against attempting to recreate it in favor of adapting the Van Wouwe model.
 
@@ -58,12 +84,11 @@ The decision to combine noise into a trajectory optimization model meant we need
 
 We aim to answer the following questions: 
 \begin{itemize}
-    \item When using \todo{mention MPC} trajectory optimization to simulate reaching movements on a human arm model, how well does the simulated behavior match human behavior, particularly with respect to the speed-accuracy tradeoff? (Question studied in \cite{original_paper_high_fidelity})
+    \item When using trajectory optimization to plan reaching movements on a human arm model, how well does the modeled behavior match human behavior, particularly with respect to the speed-accuracy tradeoff?
 
     \item How does the introduction of signal-dependent motor noise to the model affect this comparison?
 
     \item How does this behavior change when simulating execution of reaching movements using feedback control rather than just planning them?
-    % \item How does the use of different trajectory optimization methods affect this comparison?
 \end{itemize}
 For each of these questions, we use the following metrics to compare the simulated behavior (collected from our models) to human behavior (experimental data collected and used in \cite{original_paper_high_fidelity}):
 \begin{itemize}
@@ -74,7 +99,7 @@ For each of these questions, we use the following metrics to compare the simulat
         % \delta_{V_{\text{max}}} &= \max \left|V_{\text{sim}}(t)\right| - \max \left|V_{\text{exp}}(t)\right| \\
         % \delta_{T_{\text{max}}} &= \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}(t)\right|
     \end{align}
-    Where $V_{\text{sim}}$ is the simulated velocity of the hand during its reaching trajectory, and $t_f$ is the time at which the hand reaches the target.
+    where $V_{\text{sim}}$ is the simulated velocity of the hand during its reaching trajectory, and $t_f$ is the time at which the hand reaches the target.
     % , $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory,
 
     \item Delay in time of maximum velocity between large and small targets:
@@ -82,7 +107,7 @@ For each of these questions, we use the following metrics to compare the simulat
         t_{\text{delay}} = \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{L}(t)\right| - \arg\max_{t \in [0, t_f]} \left|V_{\text{sim}}^{S}(t)\right|
         % - \left(\arg\max_{t \in [0, t_f]} \left|V_{\text{exp}}^{L}(t)\right| - \arg\max_{t \in [0, $V_{\text{exp}}$ is the experimentally measured velocity of the hand during its reaching trajectory,, t_f]} \left|V_{\text{exp}}^{S}(t)\right|\right)
     \end{multline}
-    Where $V_{\text{sim}}^{L}$ and $V_{\text{sim}}^{S}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively.
+    where $V_{\text{sim}}^{L}$ and $V_{\text{sim}}^{S}$ are the simulated velocities of the hand during its reaching trajectory to large and small targets, respectively.
     % $V_{\text{exp}}^{\text{large}}$ and $V_{\text{exp}}^{\text{small}}$ are defined similarly.
     \item Fitts' Law model parameters $a$ and $b$.
     Several reaching tasks with variable target distance and target width will be simulated. A least squares regression will then be performed on the resulting movement duration data from each trial in order to fit the parameters:
@@ -91,7 +116,7 @@ For each of these questions, we use the following metrics to compare the simulat
             a^* \\ b^*
         \end{bmatrix} &= \arg\min_{a, b} \sum_{i=1}^N \left(MD_i - \left(a + b \log_2\left(\frac{2A_i}{W_i}\right)\right)\right)^2
     \end{align}
-    Where $MD_i$ is the movement duration, $A_i$ the target distance, and $W_i$ the target width for the $i$th trial, and $N$ is the number of trials.
+    where $MD_i$ is the movement duration, $A_i$ the target distance, and $W_i$ the target width for the $i$th trial, and $N$ is the number of trials.
 \end{itemize}
 
 \subsection{System Model and Dynamics}
@@ -120,8 +145,7 @@ The state and control input vectors are defined below:
         a_{\text{brach}} & a_{\text{lattri}} & a_{\text{antdel}} & a_{\text{postdel}} & a_{\text{bic}} & a_{\text{lattri}}
     \end{bmatrix}
 \end{align}
-
-Where $\theta_s$ and $\theta_e$ are the shoulder and elbow joint angles, respectively, and $\dot{\theta}_s$ and $\dot{\theta}_e$ are the corresponding joint angular velocities. The control input $\mathbf{u}$ is a vector of muscle activations for each of the 6 muscles in the model. The stochastic dynamics of the system are given by the following differential equation:
+where $\theta_s$ and $\theta_e$ are the shoulder and elbow joint angles, respectively, and $\dot{\theta}_s$ and $\dot{\theta}_e$ are the corresponding joint angular velocities. The control input $\mathbf{u}$ is a vector of muscle activations for each of the 6 muscles in the model. The stochastic dynamics of the system are given by the following differential equation:
 \begin{align}
     \dot{\mathbf{x}} &= f(\mathbf{x}, \mathbf{u}, \mathbf{w}) \quad \mathbf{w} \sim \mathcal{N}(0, \Sigma_w) \\
     &= \begin{bmatrix}
@@ -130,11 +154,11 @@ Where $\theta_s$ and $\theta_e$ are the shoulder and elbow joint angles, respect
     \end{bmatrix} \\
     \tilde{\mathbf{u}} &= \mathbf{u} + \text{diag}(\mathbf{u}) \cdot \mathbf{w}
 \end{align}
-Where $M(\mathbf{q})$ is the mass matrix of the arm model, $C(\mathbf{q}, \dot{\mathbf{q}})$ is the term describing the Coriolis forces, and $T_M(\mathbf{u}, \mathbf{q})$ is the term describing the torques generated by the muscles.
+where $M(\mathbf{q})$ is the mass matrix of the arm model, $C(\mathbf{q}, \dot{\mathbf{q}})$ is the term describing the Coriolis forces, and $T_M(\mathbf{u}, \mathbf{q})$ is the term describing the torques generated by the muscles.
 % Further details on the muscle dynamics of the system can be found in \cite{stochastic_model}.
 Note that the noise vector is effectively scaled element-wise by the control input vector, thus modeling signal dependent motor noise as described earlier.
 
-We approximate the stochastic state trajectories of the system as normally distributed trajectories. This allows us to represent the stochastic state trajectory as a mean trajectory $\mathbf{\bar{x}}(t)$ and a covariance trajectory $P(t)$. We can then use this representation to create a deterministic first order approximation of the dynamics: 
+We can then approximate the stochastic state trajectories of the system as normally distributed trajectories, allowing us to represent the stochastic trajectory as a mean trajectory $\mathbf{\bar{x}}(t) \in \mathbb{R}^4$ and a covariance trajectory $P(t) \in \mathbb{R}^{4\times 4}$. We can then use this representation to create a deterministic first order approximation of the dynamics: 
 \begin{align*}
     \mathbf{\dot{\bar{x}}}(t) &= f(\mathbf{\bar{x}}(t), \mathbf{u}(t), 0) \\
     \dot{P}(t) &= A(t)P(t) + P(t)A(t)^\top + C(t) \Sigma_w C(t)^\top \\
@@ -143,27 +167,25 @@ We approximate the stochastic state trajectories of the system as normally distr
 \end{align*}
 
 \subsection{Trajectory Optimization}
-\todo{Make this more general to account for MPC and separate it from approach/methods section} \\
-To plan the trajectory of the arm during a reaching task, we aim to solve the following optimal control problem:
-\todo{add joint bounds and positive time constraint} \\
+To plan the optimal arm trajectory for a given reaching task, we aim to solve the following optimal control problem:
 \begin{align}
-    \mathbf{u}^* = \arg\min_{\mathbf{u}(t)} &\quad k_u \cdot \int_0^{t_f} \mathbf{u}(t)^\top R \mathbf{u}(t) dt + k_t \cdot t_f \label{eq:cost} \\
+    \mathbf{u}^* = \arg\min_{\mathbf{u}(t)} &\quad k_u \cdot \int_0^{t_f} \mathbf{u}(t)^\top \mathbf{u}(t) dt + k_t \cdot t_f \label{eq:cost} \\
     \text{subject to} &\quad \mathbf{\dot{\bar{x}}}(t) = f(\mathbf{\bar{x}}(t), \mathbf{u}(t), 0), \quad \mathbf{\bar{x}}(0) = \mathbf{x}_0 \label{eq:dynamics_constraint} \\
     \begin{split}
     &\quad \dot{P}(t) = A(t)P(t) + P(t)A(t)^\top \\
     &\quad \quad + C(t) \Sigma_w C(t)^\top, \quad P(0) = P_0 
     \end{split}\label{eq:dynamics_constraint_p} \\
-    &\quad \mathbf{\dot{\bar{x}}}(0) = 0, \quad \mathbf{\dot{\bar{x}}}(t_f) = 0 \label{eq:boundary_constraints} \\
-    &\quad F_k(\mathbf{\bar{x}}(t_f)) = \mathbf{p}_{\text{target}} \label{eq:target_constraint} \\
+    &\quad \mathbf{u}(t) \in (0.001, 1), \quad \mathbf{x}(t) \in (0, \pi) \label{eq:constraints} \\
+    &\quad \mathbf{\dot{\bar{x}}}(0) = 0, \quad \mathbf{\dot{\bar{x}}}(t_f) = 0, \quad t_f > 0 \label{eq:boundary_constraints} \\
+    &\quad F_k(\mathbf{\bar{x}}(t_f)) = \begin{bmatrix} \mathbf{p}_{\text{target}} & 0 \end{bmatrix}^\top \label{eq:target_constraint} \\
     \begin{split}
     &\quad [HP(t_f)H^\top]_{i,i} \leq \sigma_{\text{target}, i}^2 \ , \\
     &\quad H = \frac{\partial F_k}{\partial \mathbf{x}}\bigg|_{\mathbf{\bar{x}}(t_f)}, \quad i = 1, \ldots, n 
     \end{split}\label{eq:target_variance_constraint}
 \end{align}
+where $t_f$ is the duration of the trajectory, $k_u$ is a weight for muscle activation, $k_t$ is a weight for duration, $\mathbf{x}_0$ is the initial state of the arm, $P_0$ is the initial state covariance, $F_k: \mathbb{R}^4 \to \mathbb{R}^4$ is the arm forward kinematics function, $\mathbf{p}_{\text{target}}$ is the position of the target, and $\sigma_{\text{target}, i}$ is the desired standard deviation of the final position of the $i$th dimension of the target.
 
-Where $t_f$ is the duration of the trajectory, $R$ is a weight matrix for muscle activations, $k_u$ is a weight for muscle activation, $k_t$ is a weight for duration, $\mathbf{x}_0$ is the initial state of the arm, $P_0$ is the initial state covariance, $F_k$ is the arm forward kinematics function, $\mathbf{p}_{\text{target}}$ is the position of the target, and $\sigma_{\text{target}, i}$ is the desired standard deviation of the final position of the $i$th dimension of the target.
-
-Equation \ref{eq:cost} works to minimize muscle activations and trajectory duration. Equations \ref{eq:dynamics_constraint} and \ref{eq:dynamics_constraint_p} enforce the dynamics of the system. Equation \ref{eq:boundary_constraints} enforces zero velocity and acceleration at the beginning and end of the trajectory, while equation \ref{eq:target_constraint} enforces the final mean position of the arm's end effector to be at the target. Finally, equation \ref{eq:target_variance_constraint} enforces the final position of the arm's end effector to be within a certain standard deviation of the target position. This standard deviation can be adjusted to model variation in target size in order to test the speed-accuracy tradeoff.
+Equation \ref{eq:cost} works to minimize muscle activations and trajectory duration. Equations \ref{eq:dynamics_constraint} and \ref{eq:dynamics_constraint_p} enforce the dynamics of the system. Equation \ref{eq:constraints} enforces muscle activation and joint bounds. Equation \ref{eq:boundary_constraints} enforces zero velocity and acceleration at the beginning and end of the trajectory, while equation \ref{eq:target_constraint} enforces the final mean position of the arm's end effector to be at the target. Finally, equation \ref{eq:target_variance_constraint} enforces the final position of the arm's end effector to be within a certain standard deviation of the target position. This standard deviation can be adjusted to model variation in target size in order to test the speed-accuracy tradeoff.
 
 % \subsection{Model Selection and Adaptation}
 % We initially invested a significant amount of time into adapting the complex 47 muscle OpenSim model for use in our project. However, this model and its supporting trajectory optimization code was developed using a heavily outdated version of OpenSim that is no longer well supported. An attempt was made to transition the model and supporting code to the latest version of OpenSim by adapting to the latest API, but this proved extremely time consuming and difficult to debug due to the complexity of the OpenSim library. As a result, we decided to abandon this model in favor of a simpler model.
@@ -175,31 +197,45 @@ Equation \ref{eq:cost} works to minimize muscle activations and trajectory durat
 \section{Approach}
 
 \subsection{Feedforward Planning using Direct Collocation}
-Working with the Van Wouwe model, we adapted the optimal control framework from \cite{stochastic_model} to perform only feed forward control and to fit our trajectory optimization problem. This implementation required us to discretize the muscle activation trajectory into a vector of $N$ nodes, and to optimize over that vector. To enforce the dynamics efficiently, we use a direct collocation based method \cite{direct_collocation}. This involves similarly discretizing the state trajectory into a series of $N$ nodes that are added to the design vector, and then enforcing the dynamics constraints between each consecutive node. This formulation results in the following design vector:
-
+To solved the trajectory optimization problem, we adapted the optimal control framework from \cite{stochastic_model} to perform only feed forward control and to fit our adapted problem formulation. This implementation required us to discretize the muscle activation trajectory into a vector of $N$ nodes, and to optimize over that vector. To enforce the dynamics efficiently, we use a direct collocation based method \cite{direct_collocation}. This involves similarly discretizing the state trajectory into a series of $N$ nodes that are added to the design vector, and then enforcing the dynamics constraints between each consecutive node. This formulation results in the following design vector:
 \begin{align}
     \mathcal{X} &= \begin{bmatrix}
         \mathbf{u}_1  \cdots \mathbf{u}_N & \mathbf{\bar{x}}_1 \cdots \mathbf{\bar{x}}_N & P_1 \cdots P_N & t_f
     \end{bmatrix}^\top
 \end{align}
-
-Where $\mathbf{u}_i$, $\mathbf{\bar{x}}_i$, and $P_i$ are the muscle activations, state, and state covariance at the $i$th node, respectively. Then the discretized optimization problem can be formulated as follows:
-\todo{change to actual fancier discretization used or at least mention it as a note} \\
-
+where $\mathbf{u}_i$, $\mathbf{\bar{x}}_i$, and $P_i$ are the muscle activations, state, and state covariance at the $i$th node, respectively. Then the discretized optimization problem can be formulated as follows:
 \begin{align}
-    \mathbf{u}^* = \arg\min_{\mathbf{u}} &\quad k_u \cdot \sum_{i=1}^{N} \mathbf{u}_i^\top R \mathbf{u}_i + k_t \cdot t_f \label{eq:dcost} \\
+    \mathcal{X}^* = \arg\min_{\mathcal{X}} &\quad k_u \cdot \sum_{i=1}^{N} \mathbf{u}_i^\top R \mathbf{u}_i + k_t \cdot t_f \label{eq:dcost} \\
     \text{subject to} &\quad \mathbf{\bar{x}}_{i+1} = \mathbf{\bar{x}}_i + f(\mathbf{\bar{x}}_i, \mathbf{u}_i, 0) \delta t \\
     \begin{split}
         &\quad P_{i+1} = (I + A_i \delta t)P_i(I + A_i \delta t)^\top \\
         &\quad \quad + C_i \Sigma_w C_i^\top \delta t
     \end{split} \label{test} \\
-    &\quad \mathbf{\bar{x}}_1 = \mathbf{x}_0, \quad f(\mathbf{\bar{x}}_0, \mathbf{u}_0, 0) = 0 \\
+    &\quad \mathbf{u}_i \in (0.001, 1), \quad \mathbf{x}_i \in (0, \pi) \\
+    &\quad \mathbf{\bar{x}}_1 = \mathbf{x}_0, \quad f(\mathbf{\bar{x}}_0, \mathbf{u}_0, 0) = 0, \quad t_f > 0 \\
     &\quad f(\mathbf{\bar{x}}_N, \mathbf{u}_N, 0) = 0, \quad F_k(\mathbf{\bar{x}}_N) = \mathbf{p}_{\text{target}} \label{eq:dtarget_constraint} \\
     &\quad [HP_NH^\top]_{i,i} \leq \sigma_{\text{target}, i}^2, \quad H = \frac{\partial F_k}{\partial \mathbf{x}}\bigg|_{\mathbf{\bar{x}}_N} \\
     &\quad i = 1, \ldots, n \label{eq:dtarget_variance_constraint}
 \end{align}
 
-Note at the dynamics of the mean and covariance trajectories are enforced using simple forward Euler integration. We may experiment with different integration methods in the future to improve accuracy.
+Note that as in \cite{stochastic_model}, the dynamics constraints are further modified using a positive definiteness preserving discretization to minimize numerical errors.
+
+Fig. \ref{fig:demo_activations} shows example muscle activation trajectories associated with a specific reach, and Fig. \ref{fig:demo_position} shows the corresponding end-effector trajectory.
+\todo{re plot these with latex and make them more readable, also mark start and end of trajectory?}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\textwidth]{images/demo_activations_small.jpg}
+    \caption{Muscle activation trajectories for a reaching task using the Van Wouwe model.}
+    \label{fig:demo_activations}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\textwidth]{images/demo_traj_small.jpg}
+    \caption{End Effector trajectory for reaching task using the Van Wouwe model.}
+    \label{fig:demo_position}
+\end{figure}
+
 
 \subsection{Model Predictive Feedback Control}
 To simulate the act of executing a reaching motion, rather than just planning it, we implemented a nonlinear model predictive controller (MPC). This controller uses the same nonlinear trajectory optimization problem as the feedforward planner, and simply solves that problem at each iteration of the controller. The control algorithm is detailed in Algorithm \ref{alg:mpc}.
@@ -242,14 +278,14 @@ Normalized velocity profiles for a slow and a fast trial of the feedforward mode
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{images/single_slow_fast.jpg}
-    \caption{Normalized end effector velocity profiles for slow and fast feedforward reaching simulations. Each velocity peak is marked with a dashed line.}
+    \caption{Normalized end effector velocity profiles for slow and fast feedforward reaching simulations. The fast maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68, while the slow maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50.}
     \label{fig:VelocityFeedforward}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{images/mpc_slow_fast.jpg}
-    \caption{Normalized end effector velocity profiles for slow and fast MPC reaching simulations. Profiles of each trial are shown along with the average velocity peaks.}
+    \caption{Normalized end effector velocity profiles for slow and fast MPC reaching simulations. The fast maximum velocity was 2.04 m/s and occurred at a normalized time of 0.67, while the slow maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50.}
     \label{fig:VelocityMPC}
 \end{figure}
 % \begin{table}[]
@@ -264,12 +300,14 @@ Normalized velocity profiles for a slow and a fast trial of the feedforward mode
 % \end{table}
 % For the feedforward model, the maximum velocity of the slow simulation was 0.76 m/s and occurred at a normalized time of 0.50.
 
-\todo{table of parameters?} \\
+% \todo{table of parameters?} \\
 % As described in the problem description several metrics were evaluated using the simulated velocity profile data. 
-For the fast feedforward trajectory, the maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68. This falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). The control effort weight was 1 and the duration weight was 20, with a movement distance of 0.17 m and a target radius of 0.1 m. For the feedforward slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
-When comparing maximum velocities between large and small targets, our model shows a normalized time delay of 0.18 between the two, which is larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). 
+% For the fast feedforward trajectory, the maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68. This falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). The control effort weight was 1 and the duration weight was 20, with a movement distance of 0.17 m and a target radius of 0.1 m. For the feedforward slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
+In the feed forward case, maximum velocities and normalized times of both slow and fast trajectories were within the experimental ranges reported in \cite{soechting_target_size}.
+When comparing maximum velocities between large and small targets, the feedforward model shows a normalized time delay of 0.18 between the two, which is larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). 
 
-The MPC model showed similar results, with the maximum velocity of the fast trajectory falling near the experimental range (2.04 m/s), and occurring at a normalized time of 0.67. The control effort weight was 1 and the duration weight was 100, with a movement distance of 0.36 m and a target radius of 0.1 m. For the slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
+% The MPC model showed similar results, with the maximum velocity of the fast trajectory falling near the experimental range (2.04 m/s), and occurring at a normalized time of 0.67. The control effort weight was 1 and the duration weight was 100, with a movement distance of 0.36 m and a target radius of 0.1 m. For the slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
+In the MPC case, the maximum velocity of the fast trajectory was slightly outside of the experimental range, but all other metrics were within the ranges reported in \cite{soechting_target_size}.
 The normalized time delay between large and small targets was 0.17, which is similar to the feedforward model.
 
 Qualitatively, these velocity profiles reproduce several trends found in experimental data.
@@ -294,19 +332,16 @@ From these results we can conclude that although our underlying dynamical model 
 
 In order to determine Fitt's Law parameters for each model, we performed a series of simulations with varying index of difficulty (ID) and recorded the movement duration for each trial.
 We varied both the distance to the target and the target width to obtain a range of ID values from 2.14 to 3.22, calculated using eq. \ref{eq:DifficultyIndex}:
-
 \begin{equation}
     \text{ID} = \log_2 \left(\frac{2A}{W}\right) \label{eq:DifficultyIndex}
 \end{equation}
-
-Where $A$ is the distance to the target and $W$ is the target width.
+where $A$ is the distance to the target and $W$ is the target width.
 The target radius was varied from 0.03 m to 0.04 m, and the target distance was varied from 0.35 m to 0.60 m.
 All other parameters were held constant across trials, and the same set of parameters was used for both the feedforward and MPC models.
 $N = 40$ nodes were used, $t_{\text{iter}} = 0.1$ s, $k_u = 1$, and $k_t = 100$. \todo{remove these parameters?}
 
 Once all trials were complete, a least-squares fit was performed on the data from each model in order to determine the $a$ and $b$ parameters for Fitts' Law. Fit lines for the feedforward and feedback models are shown in Figures \ref{fig:FittsLawSingle} and \ref{fig:FittsLawMPC}, respectively.   
 
-\todo{regenerate plots with latex labels and index of difficulty instead of difficulty index}
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{images/final_fitts_law_single.jpg}
@@ -335,20 +370,6 @@ Since our models are both able to partially replicate the kinematic profiles of 
 Our model surpasses the capabilities of a simple torque model, indicating that trajectory optimization while applying signal dependent motor noise to muscle activation is an effective and promising method for improving the modeling of human reaching.
 Both noise and trajectory optimization appear to be valid explanations for speed-accuracy tradeoff, and they are not mutually exclusive.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{images/demo_activations_small.jpg}
-    \caption{Muscle activation trajectories for a reaching task using the Van Wouwe model.}
-    \label{fig:demo_activations}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.45\textwidth]{images/demo_traj_small.jpg}
-    \caption{End Effector trajectory for reaching task using the Van Wouwe model.}
-    \label{fig:demo_position}
-\end{figure}
-
 \section{Limitations and Future Work}
 % Overall, the results of our simulations indicate a model utilizing both trajectory optimization and signal dependent motor noise can be used to demonstrate the speed-accuracy tradeoff. 
 
@@ -359,9 +380,8 @@ One limitation of this work is the lack of a more complex arm model. While the 2
 % Our simplified 2D model replicates speed-accuracy tradeoff, but doesn't capture all the complexity of the human arm, which leads to some degradation in performance when compared to the capabilities of a high fidelity system. 
 % There is definitely potential in combining signal dependent motor noise with a high fidelity musculoskeletal model, which would further improve the realism of simulations of end effector trajectories and movement duration. However, we suspect there would be significant challenge to using such a model based off of the difficulties we encountered obtaining convergence for high precision targets using our simplified approach. 
 
-the use of different trajectory optimization methods would allow us to determine the best method for modeling the speed-accuracy tradeoff, and therefore gain insight into the biological accuracy of each method. This could also give us a more fair comparison to the simulated results in \cite{original_paper_high_fidelity}, since they used a different optimization method which could contribute to the comparison. We suspect that with an ideal noise model and optimization technique, signal dependent noise can be fully implemented into a high fidelity musculoskeletal model to achieve the best lifelike simulations.
-
 \todo{mention use of different optimization methods like shooting, also use of stochastic optimization to better simulate natural variation in human movements, mention difficulty with converging}
+
 \todo{mention adding sensor noise and feedback delay to MPC model}
 % An additional trait of velocity profiles with slower movements is a tendency for multiple local minima \cite{soechting_target_size}\cite{tanaka_min_variance}. Our model does not display these traits, while the high fidelity model does. As a result, we conclude the two dimensional muscle activation model we use for our optimization is superior to simple torque models with motor noise, it is not detailed enough to fully match the shape of experimental results as a high fidelity model would. 
 % \par Our model is also able to replicate the speed-accuracy tradeoff as modeled by Fitts' Law. Our obtained values for a and b (\(a = 0.0604\) and \(b = 0.0759\)) fall well within the ranges \(a \in [0.0047, 0.5239]\), and \(b \in [0.0393,0.1987]\) \cite{fitts_law_exp_data}. The \(R^2\) value of 0.888 obtained indicates good agreement of our model with Fitts' law. This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}. However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}. We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model. Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
