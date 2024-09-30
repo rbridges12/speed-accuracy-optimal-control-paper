@@ -28,8 +28,7 @@
 \pagestyle{plain}
 
 \begin{abstract}
-\todo{rewrite this} \\
-The cause of the speed-accuracy tradeoff is a debated topic of interest in motor neuroscience. Two prominent theories are the presence of signal dependent motor noise and planning variability. In this work, we aim to determine how well the presence of both factors simultaneously explains the speed-accuracy tradeoff. A human arm reaching model is developed with bio-realistic signal dependent motor noise, and a Gaussian noise model is used to deterministically approximate the motor noise. Trajectory optimization is used to simulate several different reaching tasks with varying target sizes and movement durations. These reaching trajectories are then compared to experimental human reaching data as well as experimentally observed trends, revealing a high degree of similarity. These results suggest the speed-accuracy tradeoff is likely caused by a combination of these two factors.
+The cause of the speed-accuracy tradeoff is a debated topic of interest in motor neuroscience, and is commonly studied using tools from control theory. Two prominent theories are the presence of signal dependent motor noise and planning variability. In this work, we aim to determine how well the presence of both factors simultaneously explains the speed-accuracy tradeoff. A human arm reaching model is developed with bio-realistic signal dependent motor noise, and a Gaussian noise model is used to deterministically approximate the motor noise. Both offline trajectory optimization and online Model Predictive Control are used to simulate the planning and execution of several different reaching tasks with varying target sizes and movement durations. These reaching trajectories are then compared to experimental human reaching data, revealing that both models produced behavior consistent with humans, and the speed-accuracy tradeoff was present in both online and offline control. These results suggest the speed-accuracy tradeoff is likely caused by a combination of these two factors.
 \end{abstract}
 
 \section{Introduction}
@@ -49,7 +48,8 @@ The cause of the speed-accuracy tradeoff is a debated topic of interest in motor
 The speed-accuracy tradeoff is a phenomenon in motor neuroscience which describes the inverse relationship between the speed of a motion and the required accuracy of that motion.
 The presence of the speed-accuracy tradeoff means that the more accuracy a movement requires, the more time the movement will take and vice versa.
 It is fairly ubiquitous across different animal species as well as different task types \cite{zimmerman_book}, however it is frequently studied specifically as a property of human motor tasks. Understanding the speed-accuracy tradeoff and its causes is an important part of understanding human motion, as it is a fundamental aspect of human motor control. For this reason, it is often studied using tools from control theory.
-The speed-accuracy tradeoff can be quantified using Fitts' law, which relates the width of a target of motion $W$, the distance of the movement $A$, and the duration of the movement $MD$. The relationship between these three variables is given by Eq. \ref{eq:fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.
+The speed-accuracy tradeoff can be quantified using Fitts' law, which relates the width of a target of motion $W$, the distance of the movement $A$, and the duration of the movement $MD$. 
+% The relationship between these three variables is given by Eq. \ref{eq:fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.
 
 % understanding the relationship is a frequent topic of study, as the tradeoff must be considered in order to produce accurate models of a controlled motion \cite{speed_accuracy_history}, reaction time, and accuracy \cite{hierarchical_speed_accuracy}.
 % The tradeoff can be quantitatively modeled using Fitts’ law. Fitts’ Law relates the width of the target of motion $W$, the movement distance $A$, and the movement duration $MD$, as shown in Eq. \ref{eq:fitts_law}. Fitts' law is frequently used in combination with empirical data from laboratory testing to determine the efficacy of models in relation to the speed-accuracy tradeoff.  
@@ -64,7 +64,7 @@ However, recent work has shown that the speed-accuracy tradeoff can be reproduce
 Several previous works have studied optimal control of a human arm in the presence of motor noise. In \cite{ilqg}, an iterative Linear Quadratic Gaussian controller was studied for executing reaching motions with motor noise.
 This approach was further iterated on in \cite{stochastic_model}, where a similar human arm model was controlled using a combination of feedforward trajectory optimization and full state optimal feedback control. These works did not, however, study the speed-accuracy tradeoff, and the motor noise in the model was not signal dependent. In \cite{cost_benefit_tradeoff}, an optimal controller was used to study the speed-accuracy tradeoff in the presence of signal dependent motor noise. However, the cost benefit tradeoff was the primary focus of the work, it did not compare feed forward and feedback control, and it used a learning based stochastic optimization method rather than a deterministic optimization method.
 
-We aim to expand on this line of study by incorporating both signal dependent motor noise and motor planning variability into a human reaching model, and by comparing the effects of optimal feedforward and feedback control using a deterministic constrained optimization method.
+We aim to expand on this line of study by incorporating both signal dependent motor noise and motor planning variability into a human reaching model, and by comparing the effects of offline and online optimal control using a deterministic constrained optimization method.
 
 The remainder of the paper is organized as follows. In section II we introduce the system model and problem formulation. In section III we derive the formulations for both feed forward planning and feedback control. In section IV we present the results of our simulations and discuss their implications. Finally, in section V we discuss limitations and future work.
 
@@ -196,7 +196,7 @@ Equation \ref{eq:cost} works to minimize muscle activations and trajectory durat
 
 \section{Approach}
 
-\subsection{Feedforward Planning using Direct Collocation}
+\subsection{Offline Planning using Direct Collocation}
 To solved the trajectory optimization problem, we adapted the optimal control framework from \cite{stochastic_model} to perform only feed forward control and to fit our adapted problem formulation. This implementation required us to discretize the muscle activation trajectory into a vector of $N$ nodes, and to optimize over that vector. To enforce the dynamics efficiently, we use a direct collocation based method \cite{direct_collocation}. This involves similarly discretizing the state trajectory into a series of $N$ nodes that are added to the design vector, and then enforcing the dynamics constraints between each consecutive node. This formulation results in the following design vector:
 \begin{align}
     \mathcal{X} &= \begin{bmatrix}
@@ -221,24 +221,24 @@ where $\mathbf{u}_i$, $\mathbf{\bar{x}}_i$, and $P_i$ are the muscle activations
 Note that as in \cite{stochastic_model}, the dynamics constraints are further modified using a positive definiteness preserving discretization to minimize numerical errors.
 
 Fig. \ref{fig:demo_activations} shows example muscle activation trajectories associated with a specific reach, and Fig. \ref{fig:demo_position} shows the corresponding end-effector trajectory.
-\todo{re plot these with latex and make them more readable, also mark start and end of trajectory?}
+% \todo{re plot these with latex and make them more readable, also mark start and end of trajectory?}
 \begin{figure}
     \centering
     \includegraphics[width=0.45\textwidth]{images/demo_activations_small.jpg}
-    \caption{Muscle activation trajectories for a reaching task using the Van Wouwe model.}
+    \caption{Muscle activation trajectories for an example reaching task.}
     \label{fig:demo_activations}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=0.45\textwidth]{images/demo_traj_small.jpg}
-    \caption{End Effector trajectory for reaching task using the Van Wouwe model.}
+    \caption{End Effector trajectory for wn example reaching task.}
     \label{fig:demo_position}
 \end{figure}
 
 
 \subsection{Model Predictive Feedback Control}
-To simulate the act of executing a reaching motion, rather than just planning it, we implemented a nonlinear model predictive controller (MPC). This controller uses the same nonlinear trajectory optimization problem as the feedforward planner, and simply solves that problem at each iteration of the controller. The control algorithm is detailed in Algorithm \ref{alg:mpc}.
+To simulate the act of executing a reaching motion, rather than just planning it, we implemented a nonlinear model predictive controller (MPC). This controller uses the same nonlinear trajectory optimization problem as the offline planner, and simply solves that problem at each iteration of the controller. The control algorithm is detailed in Algorithm \ref{alg:mpc}.
 
 \begin{algorithm}
 \caption{Model Predictive Feedback Simulation}\label{alg:mpc}
@@ -263,22 +263,22 @@ To simulate the act of executing a reaching motion, rather than just planning it
 \end{algorithm}
 
 \subsection{Implementation}
-To execute both our feedforward planning and feedback MPC simulations, the algorithms were implemented in MATLAB. 
+To execute both our offline planning and feedback MPC simulations, the algorithms were implemented in MATLAB. 
 We used the CasADi library \cite{casadi} as an optimization framework to specify the problem and provide automatic differentiation for gradient and Jacobian computation. The IPOPT nonlinear solver was then used to perform the numerical optimization, with trivial constants provided as initial guesses for elements of the design vector. 
-IPOPT was run for a maximum of 3000 iterations, after which the problem was considered infeasible. For MPC simulation, the optimization at the first iteration was solved as described previously, and all consecutive iterations were ``warm-started'' by setting the initial design vector guess equal to the solution from the previous iteration. Most optimization runs converged in less than 500 iterations and took less than 30 seconds to run on a high end consumer grade CPU, although MPC optimization runs that were "warm started" typically converged significantly faster and in fewer iterations. All of the code used to implement the optimization problem can be found in the project GitHub repository: \href{https://github.com/rbridges12/eecs-598-project}{https://github.com/rbridges12/eecs-598-project}. \todo{rename github repo to paper name}
+IPOPT was run for a maximum of 3000 iterations, after which the problem was considered infeasible. For MPC simulation, the optimization at the first iteration was solved as described previously, and all consecutive iterations were ``warm-started'' by setting the initial design vector guess equal to the solution from the previous iteration. Most optimization runs converged in less than 500 iterations and took less than 30 seconds to run on a high end consumer grade CPU, although MPC optimization runs that were "warm started" typically converged significantly faster and in fewer iterations. All of the code used to implement the optimization problem can be found in the project GitHub repository: \href{https://github.com/rbridges12/speed-accuracy-optimal-control-paper}{https://github.com/rbridges12/speed-accuracy-optimal-control-paper}.
 
 \section{Simulations}
 \subsection{Model Validation}
 
-To tune and validate our feedforward planning model, we first performed a series of reaching simulations with different combinations of $k_u$, $k_t$, $\mathbf{x}_0$, $\mathbf{p}_{\text{target}}$, and $\sigma_{\text{target}}$. Target width $W$ was encoded as $\sigma_{\text{target}}$, effectively defining the target as the 95\% confidence ellipse for final end effector position. For each simulation, we recorded the reaching duration and the value and time of the maximum velocity of the end effector mean trajectory. These values were then compared to experimental data from \cite{fitts_law_exp_data} and ideal parameters were chosen based on similarity to the data. The same procedure was followed for the feedback MPC model, except that the actual end effector trajectory was recorded and each trial was repeated several times and averaged to reduce the effect of noise.
-Normalized velocity profiles for a slow and a fast trial of the feedforward model are shown in Figure \ref{fig:VelocityFeedforward}, and the same is shown for the feedback MPC model in Figure \ref{fig:VelocityMPC}.
+To tune and validate our offline planning model, we first performed a series of reaching simulations with different combinations of $k_u$, $k_t$, $\mathbf{x}_0$, $\mathbf{p}_{\text{target}}$, and $\sigma_{\text{target}}$. Target width $W$ was encoded as $\sigma_{\text{target}}$, effectively defining the target as the 95\% confidence ellipse for final end effector position. For each simulation, we recorded the reaching duration and the value and time of the maximum velocity of the end effector mean trajectory. These values were then compared to experimental data from \cite{fitts_law_exp_data} and ideal parameters were chosen based on similarity to the data. The same procedure was followed for the feedback MPC model, except that the actual end effector trajectory was recorded and each trial was repeated several times and averaged to reduce the effect of noise.
+Normalized velocity profiles for a slow and a fast trial of the offline model are shown in Figure \ref{fig:VelocityFeedforward}, and the same is shown for the feedback MPC model in Figure \ref{fig:VelocityMPC}.
 
 % To determine the prominent kinematic features of our model, we ran reaching simulations across a range of speeds in order to obtain a velocity profile of the simulation. End effector final positions, target radii, and weights for the control effort and duration were selected in order to simulate reaching tasks of various speeds. By increasing the weight of the duration, our simulation optimized for lower movement duration time and as a result the end effector velocity was increased. Increasing the control effort weight demonstrated an opposite effect. Multiple simulations were performed per set of simulation parameters to obtain an average of the end effector velocity across the span of the experiment. Then, both the time and velocity were normalized to have a maximum value of 1 in order to allow comparison between parameter sets. A slow test (movement duration = 0.62s) is shown in Figure \ref{fig:VelocitySlow}, and a fast test (movement duration = 0.28s) is shown in Figure \ref{fig:VelocityFast}. 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{images/single_slow_fast.jpg}
-    \caption{Normalized end effector velocity profiles for slow and fast feedforward reaching simulations. The fast maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68, while the slow maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50.}
+    \caption{Normalized end effector velocity profiles for slow and fast planned reaching motions. The fast maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68, while the slow maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50.}
     \label{fig:VelocityFeedforward}
 \end{figure}
 
@@ -304,18 +304,18 @@ Normalized velocity profiles for a slow and a fast trial of the feedforward mode
 % As described in the problem description several metrics were evaluated using the simulated velocity profile data. 
 % For the fast feedforward trajectory, the maximum velocity was 1.05 m/s and occurred at a normalized time of 0.68. This falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). The control effort weight was 1 and the duration weight was 20, with a movement distance of 0.17 m and a target radius of 0.1 m. For the feedforward slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
 In the feed forward case, maximum velocities and normalized times of both slow and fast trajectories were within the experimental ranges reported in \cite{soechting_target_size}.
-When comparing maximum velocities between large and small targets, the feedforward model shows a normalized time delay of 0.18 between the two, which is larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). 
+When comparing maximum velocities between large and small targets, the offline planning model shows a normalized time delay of 0.18 between the two, which is larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). 
 
 % The MPC model showed similar results, with the maximum velocity of the fast trajectory falling near the experimental range (2.04 m/s), and occurring at a normalized time of 0.67. The control effort weight was 1 and the duration weight was 100, with a movement distance of 0.36 m and a target radius of 0.1 m. For the slow trajectory, the maximum velocity was 0.76 m/s and occurred at a normalized time of 0.50. The control effort and duration weights were both 1, with a movement distance of 0.27 m and a target radius of 0.05 m. 
 In the MPC case, the maximum velocity of the fast trajectory was slightly outside of the experimental range, but all other metrics were within the ranges reported in \cite{soechting_target_size}.
-The normalized time delay between large and small targets was 0.17, which is similar to the feedforward model.
+The normalized time delay between large and small targets was 0.17, which is similar to the offline planning model.
 
 Qualitatively, these velocity profiles reproduce several trends found in experimental data.
 Existing studies show that normalized velocity profiles will be symmetric for medium velocities, shift to the left for slow movements, and shift to the right for fast movements \cite{asymmetric_vel_acc}\cite{human_vel_curves}. 
 Our simulations produce a similar trend, with the normalized velocity profile becoming less symmetric as movement duration decreases.
 these results are more realistic than a pure motor noise model, which displays primarily symmetric velocity profiles \cite{signal_dependent_motor_noise}; they are also more realistic than a torque model, which shows poorer correlation with experimental data \cite{original_paper_high_fidelity}.
 Although the model fails to replicate a shift of the normalized velocity peak to the left at the lowest speed ranges, it importantly replicates the trend of slower movements having earlier peak velocities, which is a key feature of the experimental data.
-From these results we can conclude that although our underlying dynamical model is not as accurate as the high fidelity model used in \cite{original_paper_high_fidelity}, both the feedforward and feedback reaching models show a level of realism that make them useful for studying the speed-accuracy tradeoff in reaching movements.
+From these results we can conclude that although our underlying dynamical model is not as accurate as the high fidelity model used in \cite{original_paper_high_fidelity}, both the offline planning and online MPC reaching models show a level of realism that make them useful for studying the speed-accuracy tradeoff in reaching movements.
 
 % Quantitatively, these velocity profiles match experimental data quite well. The maximum velocity of the fast feedforward trajectory falls within the range of maximal speeds reported in \cite{soechting_target_size} (0.65-1.35 m/s), and is similar to the simulated maximum velocity from \cite{original_paper_high_fidelity} (1.10 m/s). 
 % When comparing maximum velocities between large and small targets, our model shows a normalized time delay of 0.17 between the two, which appears larger but still within the same order of magnitude as the average delay from \cite{soechting_target_size} ($\approx 0.08$). Importantly, the trend of slower movements having earlier peak velocities is present in our model, which is a key feature of the experimental data.
@@ -331,21 +331,18 @@ From these results we can conclude that although our underlying dynamical model 
 % We utilized out model to solve for optimization problems with varying indexes of difficulty in order to determine Fitts' Law parameters. 
 
 In order to determine Fitt's Law parameters for each model, we performed a series of simulations with varying index of difficulty (ID) and recorded the movement duration for each trial.
-We varied both the distance to the target and the target width to obtain a range of ID values from 2.14 to 3.22, calculated using eq. \ref{eq:DifficultyIndex}:
-\begin{equation}
-    \text{ID} = \log_2 \left(\frac{2A}{W}\right) \label{eq:DifficultyIndex}
-\end{equation}
-where $A$ is the distance to the target and $W$ is the target width.
+We varied both the distance to the target and the target width to obtain a range of ID values from 2.14 to 3.22, calculated using eq. \ref{eq:fitts_law}.
 The target radius was varied from 0.03 m to 0.04 m, and the target distance was varied from 0.35 m to 0.60 m.
-All other parameters were held constant across trials, and the same set of parameters was used for both the feedforward and MPC models.
-$N = 40$ nodes were used, $t_{\text{iter}} = 0.1$ s, $k_u = 1$, and $k_t = 100$. \todo{remove these parameters?}
+All other parameters were held constant across trials, and the same set of parameters was used for both the offline planning and online MPC models.
+$N = 40$ nodes were used, with $t_{\text{iter}} = 0.1$ s, $k_u = 1$, and $k_t = 100$. 
+% \todo{remove these parameters?}
 
-Once all trials were complete, a least-squares fit was performed on the data from each model in order to determine the $a$ and $b$ parameters for Fitts' Law. Fit lines for the feedforward and feedback models are shown in Figures \ref{fig:FittsLawSingle} and \ref{fig:FittsLawMPC}, respectively.   
+Once all trials were complete, a least-squares fit was performed on the data from each model in order to determine the $a$ and $b$ parameters for Fitts' Law. Fit lines for the offline planning and online MPC models are shown in Figures \ref{fig:FittsLawSingle} and \ref{fig:FittsLawMPC}, respectively.   
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{images/final_fitts_law_single.jpg}
-    \caption{Speed-accuracy tradeoff for the feedforward model. Fitts' Law parameters are $a = 0.25$ and $b = 0.19$, with $R^2 = 0.81$.}
+    \caption{Speed-accuracy tradeoff for the offline planning model. Fitts' Law parameters are $a = 0.25$ and $b = 0.19$, with $R^2 = 0.81$.}
     \label{fig:FittsLawSingle}
 \end{figure}
 
@@ -357,8 +354,9 @@ Once all trials were complete, a least-squares fit was performed on the data fro
 \end{figure}
 
 Both models produce $a,b$ values that fall within the experimentally observed ranges of $a \in [0.0047, 0.5239]$ and $b \in [0.0393,0.1987]$ reported in \cite{fitts_law_exp_data}, and their $R^2$ values indicate good agreement with Fitts' Law.
-\todo{discuss significance of different parameters between models, higher variance data in MPC model}
-%  These values are similar to those produced by a motor noise only model with $R^2 = 0.85$ \cite{signal_dependent_motor_noise} and a torque model with $R^2 = 0.88$ \cite{original_paper_high_fidelity}. However, they fall short of the high fidelity model, which produced $R^2 = 0.974$ \cite{original_paper_high_fidelity}.
+% \todo{discuss significance of different parameters between models, higher variance data in MPC model}
+The offline planning model produces a higher slope and lower offset than the online MPC model, meaning the feedback controller was able to execute movements more quickly than planned, and the actual movement durations were less sensitive to changes in ID than the planned durations. This suggests that as the controller replans throughout the trajectory, it is able to find more optimal trajectories than the original offline plan.
+It is also worth noting that the lower $R^2$ value of the MPC data indicates a higher variability with respect to Fitts' law, which is likely due to the stochastic nature of the MPC model.
 
 %  This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}.
 %  However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}.
@@ -380,9 +378,11 @@ One limitation of this work is the lack of a more complex arm model. While the 2
 % Our simplified 2D model replicates speed-accuracy tradeoff, but doesn't capture all the complexity of the human arm, which leads to some degradation in performance when compared to the capabilities of a high fidelity system. 
 % There is definitely potential in combining signal dependent motor noise with a high fidelity musculoskeletal model, which would further improve the realism of simulations of end effector trajectories and movement duration. However, we suspect there would be significant challenge to using such a model based off of the difficulties we encountered obtaining convergence for high precision targets using our simplified approach. 
 
-\todo{mention use of different optimization methods like shooting, also use of stochastic optimization to better simulate natural variation in human movements, mention difficulty with converging}
+% \todo{mention use of different optimization methods like shooting, also use of stochastic optimization to better simulate natural variation in human movements, mention difficulty with converging}
+Another avenue for future work would be to explore and compare different optimization methods for solving the nonlinear optimization problem. While IPOPT produced sufficient results for our purposes, it failed to converge in many cases which restricted the range of reaching situations we could simulate. Additionally, the deterministic nature of IPOPT does not allow for stochastic variation in trajectory solutions given the same set of parameters, which is an important feature of human reaching. To address this, stochastic constrained optimization methods could be explored to make the model more biologically realistic.
 
-\todo{mention adding sensor noise and feedback delay to MPC model}
+% \todo{mention adding sensor noise and feedback delay to MPC model}
+Finally, a more realistic model could be created by adding sensor noise and feedback delay to the MPC model. This would more accurately model the full human motor control feedback loop, where the current arm state cannot be sensed perfectly or acted upon instantaneously.
 % An additional trait of velocity profiles with slower movements is a tendency for multiple local minima \cite{soechting_target_size}\cite{tanaka_min_variance}. Our model does not display these traits, while the high fidelity model does. As a result, we conclude the two dimensional muscle activation model we use for our optimization is superior to simple torque models with motor noise, it is not detailed enough to fully match the shape of experimental results as a high fidelity model would. 
 % \par Our model is also able to replicate the speed-accuracy tradeoff as modeled by Fitts' Law. Our obtained values for a and b (\(a = 0.0604\) and \(b = 0.0759\)) fall well within the ranges \(a \in [0.0047, 0.5239]\), and \(b \in [0.0393,0.1987]\) \cite{fitts_law_exp_data}. The \(R^2\) value of 0.888 obtained indicates good agreement of our model with Fitts' law. This level of agreement is similar to that produced by a motor noise only model with \(R^2 = 0.85\) \cite{signal_dependent_motor_noise} and a torque model with \(R^2 = 0.88\)\cite{original_paper_high_fidelity}. However, it falls short of the the high fidelity model, which produced \(R^2 = 0.974\)\cite{original_paper_high_fidelity}. We suspect the combination of both motor noise and trajectory optimization on a lower fidelity model can account for the somewhat lower quality of fit compared to the high fidelity model. Another consideration to be made in regards to our model is the challenge of producing high index of difficulty simulations from decreasing the target size. Due to the uncertainty created by motor noise in our optimization process, the simulation is unable to reliably converge in simulations which use a target radius of less than 0.01m, which limited our capability to create a Fitts' law model solely by changing the size of the target. As a result, we used simulations which varied index of difficulty using both distance to the target and target size. 
 

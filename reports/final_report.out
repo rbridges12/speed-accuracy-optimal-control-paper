@@ -3,7 +3,7 @@
 \BOOKMARK [2][-]{subsection.2.1}{System Model and Dynamics}{section.2}% 3
 \BOOKMARK [2][-]{subsection.2.2}{Trajectory Optimization}{section.2}% 4
 \BOOKMARK [1][-]{section.3}{Approach}{}% 5
-\BOOKMARK [2][-]{subsection.3.1}{Feedforward Planning using Direct Collocation}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.1}{Offline Planning using Direct Collocation}{section.3}% 6
 \BOOKMARK [2][-]{subsection.3.2}{Model Predictive Feedback Control}{section.3}% 7
 \BOOKMARK [2][-]{subsection.3.3}{Implementation}{section.3}% 8
 \BOOKMARK [1][-]{section.4}{Simulations}{}% 9
