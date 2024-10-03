@@ -140,17 +140,17 @@ end
 
 %% feedforward trajectory optimization
 % set model and optimization parameters
-N = 40; % number of discretized nodes
+N = 80; % number of discretized nodes
 motor_noise_stddev = 0.036; % motor noise standard deviation
 X_init = [0.2; 2; 0; 0];
 % X_init = [ik_opt([0;0]); 0; 0];
 P_init = diag([1e-4; 1e-4; 1e-7; 1e-7]);
 target_pos = [0.1; .6];
 % target_pos = [0;.3];
-target_radius = 0.05; % 95% confidence interval for final position radius
+target_radius = 0.03; % 95% confidence interval for final position radius
 target_vel_accuracy = 0.2; % 95% confidence interval for final velocity radius
 k_u = 1; % control effort weight
-k_t = 1; % duration weight
+k_t = 20; % duration weight
 
 % ee_init_x = [0,0]
 % ee_init_y = [0,.3]-[.1,.6]

@@ -8,11 +8,16 @@ t_end = result.time(end);
 
 % tab = uitab(hTabGroup, 'Title', ['Muscle Activation']);
 % axes('parent',tab);
-titles = {'m1 - Brachialis','m2 - Lateral triceps','m3 - anterior deltoid','m4 - posterior deltoid','m5 - biceps short','m6 - triceps long'};
+titles = {'Brachialis','Lateral Triceps','Anterior Deltoid','Posterior Deltoid','Biceps Short','Triceps Long'};
 ymax = max(max(result.e_ff));
 figure;
 for i = 1:6
-    subplot(3,2,i)
+    subplot(6,1,i)
+    set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+    set(groot, 'defaultLegendInterpreter','latex');
+    grid on;
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "YMinorTick", "on");
+    % subplot(3,2,i)
     hold on;
     stairs(result.time,result.e_ff(:,i), 'r', 'LineWidth', 2);
     % stdTraj = sqrt(squeeze(result.Pmat(i,i,:)));
@@ -20,8 +25,10 @@ for i = 1:6
     title(titles(i))
     ylim([-0.1 0.1]);
     xlim([0 t_end]);
-    xlabel('Time (s)');
-    ylabel('Activation');
+    xlabel('Time (s)', 'Interpreter', 'latex');
+    ylabel('Activation', 'Interpreter', 'latex');
+    % axis auto
+    axis([0 t_end 0 0.2])
     % legend('Planned Trajectory (feedforward)', 'Actual Trajectory (feedback)', 'Actual $\pm$ std dev','Interpreter','latex');
 end
 
@@ -98,18 +105,24 @@ legend("Mean Trajectory", "Trajectory $\pm$ std dev",'Interpreter','latex');
 
 % subplot(1,3,3)
 figure
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+set(groot, 'defaultLegendInterpreter','latex');
+grid on; hold on
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', 14, "XMinorTick", "on", "YMinorTick", "on");
 plot(result.EEPos(:,1),result.EEPos(:,2),'LineWidth',2); hold on;
 for i = 1:10:length(result.time)
 Cov = [result.P_EEPos(1,i) result.P_EEPos(2,i); result.P_EEPos(2,i) result.P_EEPos(3,i)];
 error_ellipse(Cov,[result.EEPos(i,1);result.EEPos(i,2)],0.95, "k:");
 end
-title('2D Trajectory')
+% title('2D Trajectory')
 ylim([0 1]);
 xlim([-0.1 0.1]);
-xlabel('X (m)');
-ylabel('Y (m)');
+xlabel('X (m)', 'Interpreter', 'latex');
+ylabel('Y (m)', 'Interpreter', 'latex');
 legend("Mean Trajectory", "95\% Confidence Ellipse",'Interpreter','latex');
-axis equal
+% axis equal
+axis padded equal
+% axis([0.25 0.7 ])
 
 
 % tab = uitab(hTabGroup, 'Title', ['CCI']);

@@ -28,7 +28,7 @@
 \pagestyle{plain}
 
 \begin{abstract}
-The cause of the speed-accuracy tradeoff is a debated topic of interest in motor neuroscience, and is commonly studied using tools from control theory. Two prominent theories are the presence of signal dependent motor noise and planning variability. In this work, we aim to determine how well the presence of both factors simultaneously explains the speed-accuracy tradeoff. A human arm reaching model is developed with bio-realistic signal dependent motor noise, and a Gaussian noise model is used to deterministically approximate the motor noise. Both offline trajectory optimization and online Model Predictive Control are used to simulate the planning and execution of several different reaching tasks with varying target sizes and movement durations. These reaching trajectories are then compared to experimental human reaching data, revealing that both models produced behavior consistent with humans, and the speed-accuracy tradeoff was present in both online and offline control. These results suggest the speed-accuracy tradeoff is likely caused by a combination of these two factors.
+The cause of the speed-accuracy tradeoff (typically quantified via Fitts' Law) is a debated topic of interest in motor neuroscience, and is commonly studied using tools from control theory. Two prominent theories involve the presence of signal dependent motor noise and planning variability --- these factors are generally incorporated separately. In this work, we study how well the simultaneous presence of both factors explains the speed-accuracy tradeoff. A human arm reaching model is developed with bio-realistic signal dependent motor noise, and a Gaussian noise model is used to deterministically approximate the motor noise. Both offline trajectory optimization and online model predictive control are used to simulate the planning and execution of several different reaching tasks with varying target sizes and movement durations. These reaching trajectories are then compared to experimental human reaching data, revealing that both models produce behavior consistent with humans, and the speed-accuracy tradeoff is present in both online and offline control. These results suggest the speed-accuracy tradeoff is likely caused by a combination of these two factors, and also that it plays a role in both offline and online computation.
 \end{abstract}
 
 \section{Introduction}
@@ -61,7 +61,7 @@ The speed-accuracy tradeoff can be quantified using Fitts' law, which relates th
 The causes of the speed-accuracy tradeoff are not well agreed upon. Historically, the speed-accuracy tradeoff has been attributed to signal dependent motor noise, which is noise that increases in variance as the strength of the neural control signal increases \cite{signal_dependent_motor_noise}. 
 However, recent work has shown that the speed-accuracy tradeoff can be reproduced without the presence of motor noise. Trajectory optimization was used to model the planning of a reaching motion, and the speed-accuracy tradeoff was reproduced as the result of motor planning variability \cite{original_paper_high_fidelity}. This is where the brain is theorized to be optimizing the trajectory of a motion, and higher accuracy requirements make the optimization more likely to fall into a suboptimal local minimum.
 
-Several previous works have studied optimal control of a human arm in the presence of motor noise. In \cite{ilqg}, an iterative Linear Quadratic Gaussian controller was studied for executing reaching motions with motor noise.
+Several previous works have studied optimal control of a human arm in the presence of motor noise. In \cite{ilqg}, an iterative linear quadratic gaussian controller was studied for executing reaching motions with motor noise.
 This approach was further iterated on in \cite{stochastic_model}, where a similar human arm model was controlled using a combination of feedforward trajectory optimization and full state optimal feedback control. These works did not, however, study the speed-accuracy tradeoff, and the motor noise in the model was not signal dependent. In \cite{cost_benefit_tradeoff}, an optimal controller was used to study the speed-accuracy tradeoff in the presence of signal dependent motor noise. However, the cost benefit tradeoff was the primary focus of the work, it did not compare feed forward and feedback control, and it used a learning based stochastic optimization method rather than a deterministic optimization method.
 
 We aim to expand on this line of study by incorporating both signal dependent motor noise and motor planning variability into a human reaching model, and by comparing the effects of offline and online optimal control using a deterministic constrained optimization method.
@@ -224,14 +224,14 @@ Fig. \ref{fig:demo_activations} shows example muscle activation trajectories ass
 % \todo{re plot these with latex and make them more readable, also mark start and end of trajectory?}
 \begin{figure}
     \centering
-    \includegraphics[width=0.45\textwidth]{images/demo_activations_small.jpg}
+    \includegraphics[width=0.45\textwidth]{images/example_u_traj.jpg}
     \caption{Muscle activation trajectories for an example reaching task.}
     \label{fig:demo_activations}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.45\textwidth]{images/demo_traj_small.jpg}
+    \includegraphics[width=0.45\textwidth]{images/example_EE_traj_arrow.jpg}
     \caption{End Effector trajectory for wn example reaching task.}
     \label{fig:demo_position}
 \end{figure}
